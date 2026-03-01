@@ -71,8 +71,8 @@ function guiTextRegister(typedChar, keyCode) {
     }
     // Esc key
     if (keyCode === 1.0) {
-        FileLib.write(`./config/ChatTriggers/modules/HTSL/imports/${fileNameSave}.htsl`, guiText.join("\n"));
-        ChatLib.chat(`&3[HTSL] &fSaved text to ${fileNameSave}.htsl`);
+        FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${fileNameSave}.htsl`, guiText.join("\n"));
+        ChatLib.chat(`&3[BHTSL] &fSaved text to ${fileNameSave}.htsl`);
         return;
     }
     if ([42, 29, 54, 157, 184, 56, 219, 15, 58, 211, 207, 209, 201, 199, 210, 197, 70, 183, 88, 87, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59].includes(keyCode)) return;
@@ -118,22 +118,22 @@ function guiTextRegister(typedChar, keyCode) {
 
 export default (fileName) => {
     if (!fileName) fileName = "default";
-    if (!(FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.htsl`) || FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.txt`))) {
-        ChatLib.chat(`&3[HTSL] &fCreated new file "${fileName}.htsl"`);
-        FileLib.write(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.htsl`, "");
+    if (!(FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.htsl`) || FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.txt`))) {
+        ChatLib.chat(`&3[BHTSL] &fCreated new file "${fileName}.htsl"`);
+        FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.htsl`, "");
     } else {
-        ChatLib.chat(`&3[HTSL] &fLoading ${fileName}.htsl . . .`);
+        ChatLib.chat(`&3[BHTSL] &fLoading ${fileName}.htsl . . .`);
     }
     guiText = [];
     fileNameSave = fileName;
     try {
-        if (FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.htsl`)) {
-            guiText = FileLib.read(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.htsl`);
-        } else if (FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.txt`)) {
-            guiText = FileLib.read(`./config/ChatTriggers/modules/HTSL/imports/${fileName}.txt`);
-            ChatLib.chat(`&3[HTSL] &eThe .txt file extension won't be supported in future updates. Please change your file extensions to be .htsl`);
+        if (FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.htsl`)) {
+            guiText = FileLib.read(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.htsl`);
+        } else if (FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.txt`)) {
+            guiText = FileLib.read(`./config/ChatTriggers/modules/BHTSL/imports/${fileName}.txt`);
+            ChatLib.chat(`&3[BHTSL] &eThe .txt file extension won't be supported in future updates. Please change your file extensions to be .htsl`);
         } else {
-            return ChatLib.chat(`&3[HTSL] &cCouldn't find the file "${fileName}", please make sure it exists!`);
+            return ChatLib.chat(`&3[BHTSL] &cCouldn't find the file "${fileName}", please make sure it exists!`);
         }
         guiText = guiText.split("\n");
         lineLimit = Math.floor((Renderer.screen.getHeight() - 7) / 20);
@@ -146,7 +146,7 @@ export default (fileName) => {
         cursorIndex = guiText[cursorLine].length
         return gui.open();
     } catch (error) {
-        return ChatLib.chat(`&3[HTSL] &f${fileName}.htsl can't be loaded! Please make sure this file exists!`);
+        return ChatLib.chat(`&3[BHTSL] &f${fileName}.htsl can't be loaded! Please make sure this file exists!`);
     }
 
 }
