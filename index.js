@@ -28,36 +28,36 @@ register("command", ...args => {
     }
     if (command === 'guide') {
         const guideLink = new Message(
-            new TextComponent("&3[HTSL] &fJust click this: &b&l[Guide]").setClick("open_url", "https://hypixel.net/threads/updated-guide-htsl.5555038/")
+            new TextComponent("&3[BHTSL] &fJust click this: &b&l[Guide]").setClick("open_url", "https://hypixel.net/threads/updated-guide-htsl.5555038/")
         );
         return ChatLib.chat(guideLink);
     }
     if (command === 'changelog') {
-        ChatLib.chat("&3[HTSL] &fChanges:");
-        let changelog = FileLib.read('./config/ChatTriggers/modules/HTSL/update/changelog.txt').split("\n");
+        ChatLib.chat("&3[BHTSL] &fChanges:");
+        let changelog = FileLib.read('./config/ChatTriggers/modules/BHTSL/update/changelog.txt').split("\n");
         changelog.forEach(line => {
             ChatLib.chat(line.trim());
         });
         return;
     }
     if (command === 'saveitem') {
-        if (args.length < 2) return ChatLib.chat("&3[HTSL] &cPlease enter a filename to save it to!");
+        if (args.length < 2) return ChatLib.chat("&3[BHTSL] &cPlease enter a filename to save it to!");
         let itemHeld = Player.getHeldItem().getNBT().toString().replace(/["]/g, '\\$&');
-        FileLib.write(`./config/ChatTriggers/modules/HTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args[1]}.json`, `{"item": "${itemHeld}"}`, true);
-        return ChatLib.chat(`&3[HTSL] &fSaved item to ${args[1]}.json`);
+        FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args[1]}.json`, `{"item": "${itemHeld}"}`, true);
+        return ChatLib.chat(`&3[BHTSL] &fSaved item to ${args[1]}.json`);
     }
     if (command === 'convert') {
-        if (args.length < 3) return ChatLib.chat("&3[HTSL] &cPlease enter the action id and then the filename to save it to!");
+        if (args.length < 3) return ChatLib.chat("&3[BHTSL] &cPlease enter the action id and then the filename to save it to!");
         convertHE(args[1], args[2]);
-        return ChatLib.chat(`&3[HTSL] &fConverting action into HTSL script saved at ${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${args[2]}.htsl`);
+        return ChatLib.chat(`&3[BHTSL] &fConverting action into HTSL script saved at ${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${args[2]}.htsl`);
     }
     if (command === "addfunctions") {
-        if (args.length == 1) return ChatLib.chat("&3[HTSL] &cPlease add a filename!");
+        if (args.length == 1) return ChatLib.chat("&3[BHTSL] &cPlease add a filename!");
         args.shift();
         let file = args.join(" ");
-        if (FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`)) {
+        if (FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`)) {
             Navigator.isReady = true;
-            preProcess(FileLib.read(`./config/ChatTriggers/modules/HTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`).split("\n")).filter(n => n.context == "FUNCTION").forEach((context, index) => {
+            preProcess(FileLib.read(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`).split("\n")).filter(n => n.context == "FUNCTION").forEach((context, index) => {
                 if (index > 0) addOperation({ type: 'closeGui' });
                 if (index > 0) addOperation({ type: 'wait', time: 1500 });
                 addOperation({ type: 'chat', text: `/function edit ${context.contextTarget.name}`, func: context.contextTarget.name, command: true });
@@ -66,35 +66,35 @@ register("command", ...args => {
             addOperation({ type: 'done' });
             return;
         } else {
-            return ChatLib.chat("&3[HTSL] &cFile not found!");
+            return ChatLib.chat("&3[BHTSL] &cFile not found!");
         }
     }
     if (command === "listscripts") {
         let files;
         if (args.length == 1) {
-            files = readDir(`./config/ChatTriggers/modules/HTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}`, false).filter(e => e.endsWith("htsl") || e.endsWith("\\"));
+            files = readDir(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}`, false).filter(e => e.endsWith("htsl") || e.endsWith("\\"));
         } else {
             args.shift();
-            files = readDir(`./config/ChatTriggers/modules/HTSL/imports/${args.join(" ")}/`, false);
+            files = readDir(`./config/ChatTriggers/modules/BHTSL/imports/${args.join(" ")}/`, false);
         }
         files.filter(e => e.endsWith("\\")).forEach(directory => {
             ChatLib.chat(`&3Directory: &f${directory.substring(0, directory.length - 1)}`);
         })
-        ChatLib.chat("\n&3[HTSL] &fMain Directory:\n");
+        ChatLib.chat("\n&3[BHTSL] &fMain Directory:\n");
         return files.filter(e => e.endsWith(".htsl")).forEach(file => {
             ChatLib.chat(file);
         });
     }
     if (command === "version") {
-        return ChatLib.chat(`&3[HTSL] &fVersion ${JSON.parse(FileLib.read("HTSL", "./metadata.json")).version}`);
+        return ChatLib.chat(`&3[BHTSL] &fVersion ${JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version}`);
     }
     if (command === "giveitem") {
         if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) {
             World.playSound('mob.villager.no', 0.5, 1);
-            return ChatLib.chat(`&3[HTSL] &cMust be in creative mode to import an item!`);
+            return ChatLib.chat(`&3[BHTSL] &cMust be in creative mode to import an item!`);
         }
         args.shift();
-        let nbt = JSON.parse(FileLib.read('HTSL', `/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args.join(" ")}.json`)).item;
+        let nbt = JSON.parse(FileLib.read('BHTSL', `/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args.join(" ")}.json`)).item;
         let item = getItemFromNBT(nbt);
         let slot = Player.getInventory().getItems().indexOf(null);
         if (slot < 9) slot += 36;
@@ -102,17 +102,17 @@ register("command", ...args => {
         return;
     }
     if (command === "import") {
-        if (args.length == 1) return ChatLib.chat("&3[HTSL] &cPlease add a filename!");
+        if (args.length == 1) return ChatLib.chat("&3[BHTSL] &cPlease add a filename!");
         args.shift();
         let file = args.join(" ");
-        if (FileLib.exists(`./config/ChatTriggers/modules/HTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`)) {
+        if (FileLib.exists(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}.htsl`)) {
             Navigator.isReady = true;
             let actions = compile(`${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${file}`, [], true);
             actions = actions.filter(n => n.context !== "DEFAULT");
             loadAction(actions, Settings.deleteOnCommandImport);
             return;
         } else {
-            return ChatLib.chat("&3[HTSL] &cFile not found!");
+            return ChatLib.chat("&3[BHTSL] &cFile not found!");
         }
     }
     if (command === 'help') {
@@ -180,4 +180,5 @@ function getMatchedFileName(path, filePath) {
     if (pathMatchArray) return pathMatchArray[1];
 
     return null;
+
 }
