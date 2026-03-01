@@ -391,9 +391,10 @@ register('guiOpened', (gui) => {
 
 let wasInActionGui = false;
 function isInActionGui() {
-	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
 	if (Client.currentGui.getClassName() === "GuiContainerCreative") return true;
 	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
+	if (Player.getContainer().getName().match(/Edit Actions|Actions: /)) return true;
+	if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) return false;
 	return true;
 }
 
