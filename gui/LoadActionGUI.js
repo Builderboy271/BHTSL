@@ -391,11 +391,10 @@ register('guiOpened', (gui) => {
 
 let wasInActionGui = false;
 function isInActionGui() {
-	const containerName = Player.getContainer().getName();
 	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
+	if (Client.currentGui.getClassName() === "GuiContainerCreative") return true;
 	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
-	if (containerName.match(/Edit Actions|Actions: /)) return true;
-	return false;
+	return true;
 }
 
 function readFiles() {
