@@ -23,42 +23,42 @@ let show = false;
 // load assets
 const htslIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/htsl.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/htsl.png`)
 	)
 );
 const itemIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/item.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/item.png`)
 	)
 );
 const folderIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/folder.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/folder.png`)
 	)
 );
 const nh_htslIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/nh_htsl.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/nh_htsl.png`)
 	)
 );
 const nh_itemIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/nh_item.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/nh_item.png`)
 	)
 );
 const nh_folderIcon = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/nh_folder.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/nh_folder.png`)
 	)
 );
 const trashBin = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/bin_closed.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/bin_closed.png`)
 	)
 );
 const openTrashBin = new Image(
 	javax.imageio.ImageIO.read(
-		new java.io.File(`./config/ChatTriggers/modules/HTSL/assets/bin.png`)
+		new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/bin.png`)
 	)
 );
 const menuClick = new Sound({ source: "click.ogg", category: "master" });
@@ -149,7 +149,7 @@ register('guiRender', (x, y) => {
 						let item
 						if (renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]]) item = renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]];
 						else {
-							item = getItemFromNBT(JSON.parse(FileLib.read("HTSL", `imports/${subDir.replace("\\", "/")}${filteredFiles[i]}`)).item);
+							item = getItemFromNBT(JSON.parse(FileLib.read("BHTSL", `imports/${subDir.replace("\\", "/")}${filteredFiles[i]}`)).item);
 							renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]] = item;
 						}
 						if (!item) {
@@ -164,7 +164,7 @@ register('guiRender', (x, y) => {
 						let item
 						if (renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]]) item = renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]];
 						else {
-							item = getItemFromNBT(JSON.parse(FileLib.read("HTSL", `imports/${subDir.replace("\\", "/")}${filteredFiles[i]}`)).item);
+							item = getItemFromNBT(JSON.parse(FileLib.read("BHTSL", `imports/${subDir.replace("\\", "/")}${filteredFiles[i]}`)).item);
 							renderItemIcons[subDir.replace("\\", "/") + filteredFiles[i]] = item;
 						}
 						if (!item) {
@@ -279,7 +279,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
 
 	handleInputClick(importButton, compile, x, y);
 	handleInputClick(exportButton, exportAction, x, y);
-	// handleInputClick(exportButton, () => { ChatLib.chat("&3[HTSL] &eBecause of the recent update, exporting is currently disabled."); }, x, y);
+	// handleInputClick(exportButton, () => { ChatLib.chat("&3[BHTSL] &eBecause of the recent update, exporting is currently disabled."); }, x, y);
 
 	let index = -1;
 	if (x >= input.getX() && x <= input.getX() + input.getWidth()) {
@@ -296,7 +296,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
 			if (x < input.getX() + input.getWidth() - 8 && x > input.getX() + input.getWidth() - 24) {
 				trashSound.rewind();
 				trashSound.play();
-				FileLib.delete("HTSL", `imports/${subDir.replaceAll("\\", "/")}${filteredFiles[index]}`);
+				FileLib.delete("BHTSL", `imports/${subDir.replaceAll("\\", "/")}${filteredFiles[index]}`);
 				files = [];
 				filteredFiles = [];
 				readFiles();
@@ -321,7 +321,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
 				World.playSound('mob.villager.no', 0.5, 1);
 				return ChatLib.chat(`&3[HTSL] &cMust be in creative mode to import an item!`);
 			}
-			let nbt = JSON.parse(FileLib.read('HTSL', `/imports/${subDir.replaceAll("\\", "/") + filteredFiles[index]}`)).item;
+			let nbt = JSON.parse(FileLib.read('BHTSL', `/imports/${subDir.replaceAll("\\", "/") + filteredFiles[index]}`)).item;
 			let item = getItemFromNBT(nbt);
 			let slot = Player.getInventory().getItems().indexOf(null);
 			if (slot < 9) slot += 36;
@@ -405,7 +405,7 @@ function readFiles() {
 	renderItemIcons = [];
 	if (Settings.toggleFileExplorer && !show) return;
 	try {
-		files = readDir(`./config/ChatTriggers/modules/HTSL/imports/${subDir.replace(/\\+/g, "/")}`, false).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || !n.includes("."));
+		files = readDir(`./config/ChatTriggers/modules/BHTSL/imports/${subDir.replace(/\\+/g, "/")}`, false).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || !n.includes("."));
 		files.sort().sort((a, b) => {
 			let isDirA = a.endsWith('\\');
 			let isDirB = b.endsWith('\\');
@@ -424,7 +424,7 @@ function readFiles() {
 		else filteredFiles = files;
 	} catch (e) {
 		console.error(e);
-		ChatLib.chat(`&3[HTSL] &cSomething went wrong reading your imports...`);
+		ChatLib.chat(`&3[BHTSL] &cSomething went wrong reading your imports...`);
 	}
 }
 
