@@ -15,5 +15,4 @@ Thanks to Housing Editor for making this possible
 
 To see ingame commands do /htsl or /htsl help
 
-Support Discord Server: discord.gg/bptauV2BAA
-
+Support HTSL Discord Server: discord.gg/bptauV2BAA
