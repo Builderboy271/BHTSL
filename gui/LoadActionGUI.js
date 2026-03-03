@@ -81,7 +81,7 @@ let renderItemIcons = [];
 
 register('guiRender', (x, y) => {
 	if (!Player.getContainer()) return;
-	if (!isInActionGui()) return;
+	if (!isInItemGui()) return;
 	if (isImporting()) return;
 
 	// placements
@@ -211,7 +211,7 @@ register('guiRender', (x, y) => {
 
 register('guiKey', (char, keyCode, gui, event) => {
 	if (!Player.getContainer()) return;
-	if (!isInActionGui()) return;
+	if (!isInItemGui()) return;
 
 	input.mcObject.func_146195_b(true);
 	if (input.mcObject.func_146206_l()) {
@@ -229,7 +229,7 @@ let lastClick = 0;
 
 register('guiMouseClick', (x, y, mouseButton) => {
 	if (!Player.getContainer()) return;
-	if (!isInActionGui()) return;
+	if (!isInItemGui()) return;
 
 	if (isImporting()) return;
 
@@ -335,6 +335,8 @@ function handleInputClick(button, action, x, y) {
 	if (isButtonHovered(button, x, y)) {
 		World.playSound('random.click', 0.5, 1)
 
+		if (!isInActionGui()) return;
+		
 		if (input.getText() === "Enter File Name" || input.getText() === "") {
 			input.setText('default');
 		}
@@ -380,23 +382,31 @@ register('guiOpened', (gui) => {
 	if (!Player.getContainer()) return;
 	// for some reason this event triggers before the gui actually loads?? so we have to wait
 	setTimeout(() => {
-		if (!isInActionGui()) return wasInActionGui = false;
-		if (wasInActionGui) return;
-		if (!wasInActionGui && isInActionGui()) wasInActionGui = true;
+		if (!isInItemGui()) return wasInItemGui = false;
+		if (wasInItemGui) return;
+		if (!wasInItemGui && isInItemGui()) wasInItemGui = true;
 
 		if (!Settings.saveDirectory) subDir = "";
 		readFiles();
 	}, 50);
 });
 
-let wasInActionGui = false;
-function isInActionGui() {
+let wasInItemGui = false;
+function isInItemGui() {
 	if (Client.currentGui.getClassName() === "GuiContainerCreative") return true;
 	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
 	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
 	if (Player.getContainer().getName().match(/Edit Actions|Actions: /)) return true;
 	if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) return false;
 	return true;
+}
+
+function isInActionGui() {
+	const containerName = Player.getContainer().getName();
+	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
+	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
+	if (containerName.match(/Edit Actions|Actions: /)) return true;
+	return false;
 }
 
 function readFiles() {
