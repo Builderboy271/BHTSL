@@ -38,7 +38,7 @@ class Settings {
 
 	@SwitchProperty({
 		name: "Delete Existing Actions on Command Import",
-		description: 'Before importing using the command, HTSL will delete any existing actions in the first non-default context',
+		description: 'Before importing using the command, BHTSL will delete any existing actions in the first non-default context',
 		category: "General",
 		subcategory: "General",
 	})
@@ -80,7 +80,7 @@ class Settings {
 
     @TextProperty({
         name: "Item Path Prefix",
-        description: "Modifies where HTSL looks for/places item references (e.g. \"items\" will look in /project folder/items/)",
+        description: "Modifies where BHTSL looks for/places item references (e.g. \"items\" will look in /project folder/items/)",
         category: "Importing/Exporting",
         subcategory: "Importing/Exporting"
     })
@@ -96,7 +96,7 @@ class Settings {
 
 	@SliderProperty({
 		name: "GUI Timeout",
-		description: "Amount of ticks after not clicking anything in the GUI before declaring an error and timing out.\n\n&eIf you have lots of lagspikes / slow internet and HTSL keeps timing out you should increase this.",
+		description: "Amount of ticks after not clicking anything in the GUI before declaring an error and timing out.\n\n&eIf you have lots of lagspikes / slow internet and BHTSL keeps timing out you should increase this.",
 		category: "Importing/Exporting",
 		subcategory: "Importing/Exporting",
 		min: 60,
