@@ -13,6 +13,7 @@ Make sure ChatTriggers is up to date
 
 Thanks to Housing Editor for making this possible
 
-To see ingame commands do /htsl or /htsl help
+To see ingame commands do /bhtsl or /bhtsl help
 
 Support HTSL Discord Server: discord.gg/bptauV2BAA
+
