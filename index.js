@@ -123,23 +123,23 @@ register("command", ...args => {
     }
     if (command === 'help') {
         ChatLib.chat('&8&m-------------------------------------------------');
-        ChatLib.chat('&6/htsl help &7Opens the HTSL help menu!')
-        ChatLib.chat('&6/htsl gui <script name> &7Opens a window for editing scripts!');
-        ChatLib.chat('&6/htsl config &7Opens the settings menu for HTSL!');
-        ChatLib.chat('&6/htsl guide &7Opens a syntax guide!');
-        ChatLib.chat('&6/htsl changelog &7Shows you all the significant changes made in the last update!');
-        ChatLib.chat('&6/htsl saveitem <filename> &7Save an item to import!');
-        ChatLib.chat('&6/htsl convert <action id> <filename> &7Converts a HousingEditor action to HTSL!');
-        ChatLib.chat('&6/htsl addfunctions <filename> &7Imports all the required functions to prepare for import!');
-        ChatLib.chat('&6/htsl listscripts &7Lists all your scripts');
-        ChatLib.chat('&6/htsl version &7Returns your current HTSL version');
-        ChatLib.chat('&6/htsl giveitem <filename> &7Gives you an item from your imports');
-        ChatLib.chat('&6/htsl import <filename> &7Imports given file (ignores default context)');
+        ChatLib.chat('&6/bhtsl help &7Opens the BHTSL help menu!')
+        ChatLib.chat('&6/bhtsl gui <script name> &7Opens a window for editing scripts!');
+        ChatLib.chat('&6/bhtsl config &7Opens the settings menu for BHTSL!');
+        ChatLib.chat('&6/bhtsl guide &7Opens a syntax guide!');
+        ChatLib.chat('&6/bhtsl changelog &7Shows you all the significant changes made in the last update!');
+        ChatLib.chat('&6/bhtsl saveitem <filename> &7Save an item to import!');
+        ChatLib.chat('&6/bhtsl convert <action id> <filename> &7Converts a HousingEditor action to BHTSL!');
+        ChatLib.chat('&6/bhtsl addfunctions <filename> &7Imports all the required functions to prepare for import!');
+        ChatLib.chat('&6/bhtsl listscripts &7Lists all your scripts');
+        ChatLib.chat('&6/bhtsl version &7Returns your current BHTSL version');
+        ChatLib.chat('&6/bhtsl giveitem <filename> &7Gives you an item from your imports');
+        ChatLib.chat('&6/bhtsl import <filename> &7Imports given file (ignores default context)');
         ChatLib.chat('&8&m-------------------------------------------------');
     } else {
-        ChatLib.chat('&3[HTSL] &fUnknown command! Try /htsl for help!');
+        ChatLib.chat('&3[BHTSL] &fUnknown command! Try /bhtsl for help!');
     }
-}).setName('htsl').setAliases(['ht']);
+}).setName('bhtsl').setAliases(['htsl', 'bht', 'ht']);
 
 /**
  * Obtains a list of file names from a directory.
@@ -188,4 +188,5 @@ function getMatchedFileName(path, filePath) {
     return null;
 
 }
+
 
