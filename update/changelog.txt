@@ -1,2 +1,3 @@
-Patch 1.4.3:
-- Bug fixes
+Patch 2.0.0:
+
+- Action GUI will show when items can be imported, even if scripts cannot
