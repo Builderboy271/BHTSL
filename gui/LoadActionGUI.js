@@ -212,6 +212,7 @@ register('guiRender', (x, y) => {
 register('guiKey', (char, keyCode, gui, event) => {
 	if (!Player.getContainer()) return;
 	if (!isInItemGui()) return;
+	if (!inputEnabled) return;
 
 	input.mcObject.func_146195_b(true);
 	if (input.mcObject.func_146206_l()) {
@@ -219,7 +220,7 @@ register('guiKey', (char, keyCode, gui, event) => {
 		if (input.getText() != "Enter File Name") filteredFiles = files.filter(n => n.toLowerCase().includes(input.getText().toLowerCase()))
 		else filteredFiles = files;
 		// fileInputUpdate()
-		if (keyCode !== 1 && inputEnabled) { // keycode for escape key
+		if (keyCode !== 1) { // keycode for escape key
 			cancel(event);
 		}
 	}
