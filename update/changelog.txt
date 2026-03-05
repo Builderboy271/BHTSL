@@ -1,3 +1,6 @@
 Patch 2.0.0:
 
-- Action GUI will show when items can be imported, even if scripts cannot
+- Action GUI will show in menus where items can be imported, even if scripts cannot
+- Action GUI now has an option for global searching
+- Action GUI now truncates file names
+- Action GUI sounds have been improved
