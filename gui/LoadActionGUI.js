@@ -166,6 +166,8 @@ function renderActionGUI(x, y) {
                 backDir.render(x, y);
                 Renderer.drawString("&7" + subDir.replace(/\\/g, "/"), chestX / 2 - Renderer.getStringWidth("/" + subDir.replace(/\\/g, "/")) / 2, topBound - 10, true);
             }
+
+            if (linesPerPage < filteredFiles.length) Renderer.drawString("&7" + page, input.getWidth() / 2 + input.getX(), input.getY() + 393, true);
             if ((page + 1) * linesPerPage < filteredFiles.length) forwardPage.render(x, y);
             if (page > 0) backwardPage.render(x, y);
             refreshFiles.render(x, y);
@@ -232,10 +234,18 @@ register('guiMouseClick', (x, y, mouseButton) => {
     }
     if ((page + 1) * linesPerPage < filteredFiles.length && isButtonHovered(forwardPage, x, y)) {
         page++;
+        if (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54)) {
+            page += 9;
+            if (page * linesPerPage >= filteredFiles.length) page = (filteredFiles.length / linesPerPage) - 1;
+        }
         World.playSound('random.click', 0.5, 1);
     }
     if (page > 0 && isButtonHovered(backwardPage, x, y)) {
         page--;
+        if (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54)) {
+            page -= 9;
+            if (page < 0) page = 0;
+        }
         World.playSound('random.click', 0.5, 1);
     }
     if (Settings.toggleFileExplorer && isButtonHovered(toggleShow, x, y)) {
@@ -356,6 +366,7 @@ function isInItemGui() {
 	return true;
 }
 
+let wasInActionGui = false;
 function isInActionGui() {
 	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
 	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
@@ -363,5 +374,17 @@ function isInActionGui() {
 	return false;
 }
 
-register('guiOpened', () => setTimeout(readFiles, 50));
+register('guiOpened', () => {
+	if (!Player.getContainer()) return;
+	// for some reason this event triggers before the gui actually loads?? so we have to wait
+	setTimeout(() => {
+		if (!isInActionGui()) return wasInActionGui = false;
+		if (wasInActionGui) return;
+		if (!wasInActionGui && isInActionGui()) wasInActionGui = true;
+
+		if (!Settings.saveDirectory) subDir = "";
+		readFiles();
+	}, 50);
+});
+
 export function getSubDir() { return subDir; }
