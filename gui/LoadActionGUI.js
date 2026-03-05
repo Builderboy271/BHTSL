@@ -210,20 +210,18 @@ register('guiRender', (x, y) => {
 });
 
 register('guiKey', (char, keyCode, gui, event) => {
-	if (!Player.getContainer()) return;
-	if (!isInItemGui()) return;
-	if (!inputEnabled) return;
+    if (!Player.getContainer() || !isInItemGui() || !inputEnabled) return;
 
-	input.mcObject.func_146195_b(true);
-	if (input.mcObject.func_146206_l()) {
-		input.mcObject.func_146201_a(char, keyCode);
-		if (input.getText() != "Enter File Name") filteredFiles = files.filter(n => n.toLowerCase().includes(input.getText().toLowerCase()))
-		else filteredFiles = files;
-		// fileInputUpdate()
-		if (keyCode !== 1) { // keycode for escape key
-			cancel(event);
-		}
-	}
+    input.mcObject.func_146195_b(true);
+    if (input.mcObject.func_146206_l()) {
+        input.mcObject.func_146201_a(char, keyCode);
+        
+        readFiles(); 
+
+        if (keyCode !== 1) { // keycode for escape key
+            cancel(event);
+        }
+    }
 });
 
 let lastClick = 0;
@@ -414,58 +412,63 @@ function isInActionGui() {
 }
 
 function readFiles() {
-	page = 0;
-	files = [];
-	filteredFiles = [];
-	renderItemIcons = [];
-	if (Settings.toggleFileExplorer && !show) return;
-	try {
-		const clean = (str) => str.replace(/[&§][0-9a-fk-or]/gi, "").replace(/^\s+/, "").toLowerCase();
-		
-		files = readDir(`./config/ChatTriggers/modules/BHTSL/imports/${subDir.replace(/\\+/g, "/")}`, false).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || !n.includes("."));
-		files.sort((a, b) => {
-			let cleanA = clean(a);
-			let cleanB = clean(b);
+    page = 0;
+    files = [];
+    filteredFiles = [];
+    renderItemIcons = [];
+    if (Settings.toggleFileExplorer && !show) return;
 
-			let isDirA = a.endsWith('\\');
-			let isDirB = b.endsWith('\\');
+    try {
+        const clean = (str) => str.replace(/[&§][0-9a-fk-or]/gi, "").replace(/^\s+/, "").toLowerCase();
+        const searchText = input.getText();
+        const isSearching = searchText !== "Enter File Name" && searchText !== "";
 
-			if (isDirA && !isDirB) return -1;
-			if (!isDirA && isDirB) return 1;
+        const shouldWalk = Settings.globalSearch && isSearching;
+        
+        const basePath = shouldWalk ? "" : subDir;
+        const searchPath = `./config/ChatTriggers/modules/BHTSL/imports/${basePath.replace(/\\+/g, "/")}`;
 
-			if (cleanA < cleanB) return -1;
-			if (cleanA > cleanB) return 1;
+        files = readDir(searchPath, shouldWalk).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || n.endsWith("\\"));
 
-			let extA = a.split('.').pop();
-			let extB = b.split('.').pop();
-			if (extA < extB) return -1;
-			if (extA > extB) return 1;
+        files.sort((a, b) => {
+            let isDirA = a.endsWith('\\');
+            let isDirB = b.endsWith('\\');
+            if (isDirA && !isDirB) return -1;
+            if (!isDirA && isDirB) return 1;
+            return clean(a).localeCompare(clean(b));
+        });
 
-			return 0;
-		});
-		if (input.getText() != "Enter File Name") filteredFiles = files.filter(n => n.toLowerCase().includes(input.getText().toLowerCase()));
-		else filteredFiles = files;
-	} catch (e) {
-		console.error(e);
-		ChatLib.chat(`&3[BHTSL] &cSomething went wrong reading your imports...`);
-	}
+        if (isSearching) {
+            filteredFiles = files.filter(n => n.toLowerCase().includes(searchText.toLowerCase()));
+        } else {
+            filteredFiles = files;
+        }
+    } catch (e) {
+        console.error(e);
+        ChatLib.chat(`&3[BHTSL] &cSomething went wrong reading your imports...`);
+    }
 }
 
 function readDir(path, walk) {
-	let files = new java.io.File(path).listFiles();
-	let fileNames = [];
-	files.forEach(file => {
-		if (file.isDirectory()) {
-			if (walk) {
-				readDir(path + file.getName() + "/").forEach(newFile => fileNames.push((file.toString() + "\\" + newFile.toString()).substring(path.length)));
-			} else {
-				fileNames.push(file.toString().substring(path.length) + "\\");
-			}
-		} else {
-			fileNames.push(file.toString().substring(path.length));
-		}
-	});
-	return fileNames;
+    let files = new java.io.File(path).listFiles();
+    let fileNames = [];
+    if (!files) return [];
+
+    files.forEach(file => {
+        let name = file.getName();
+        if (file.isDirectory()) {
+            if (walk) {
+                readDir(path + name + "/", true).forEach(newFile => {
+                    fileNames.push(name + "/" + newFile); 
+                });
+            } else {
+                fileNames.push(name + "\\");
+            }
+        } else {
+            fileNames.push(name);
+        }
+    });
+    return fileNames;
 }
 
 export function getSubDir() {
