@@ -117,7 +117,7 @@ class Settings {
 	// Import Menu
 
 	@SwitchProperty({
-		name: "Toggle File Explorer window",
+		name: "Toggle File Explorer Window",
 		description: "Turning this on will add a toggle button to show the file explorer instead of always being open",
 		category: "Import Menu",
 		subcategory: "Import Menu"
@@ -149,6 +149,14 @@ class Settings {
 		max: 50
 	})
 	debounce = 10;
+
+	@SwitchProperty({
+		name: "GUI Avaliable Everywhere",
+		description: "Show the GUI whenever you are able to import items, not just scripts",
+		category: "Import Menu",
+		subcategory: "Import Menu"
+	})
+	guiAvaliableEverywhere = false;
 
 	@SwitchProperty({
 		name: "Global Search",

@@ -45,7 +45,7 @@ let renderItemIcons = [];
 let isGlobalSearching = false;
 
 function renderActionGUI(x, y) {
-    if (!Player.getContainer() || !isInItemGui() || isImporting()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
@@ -199,7 +199,7 @@ register('postGuiRender', (x, y) => {
 });
 
 register('guiKey', (char, keyCode, gui, event) => {
-    if (!Player.getContainer() || !isInItemGui() || !inputEnabled) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || !inputEnabled) return;
     input.mcObject.func_146195_b(true);
     if (input.mcObject.func_146206_l()) {
         input.mcObject.func_146201_a(char, keyCode);
@@ -212,7 +212,7 @@ let lastClick = 0;
 let inputEnabled = false;
 
 register('guiMouseClick', (x, y, mouseButton) => {
-    if (!Player.getContainer() || !isInItemGui() || isImporting()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting()) return;
     if (Settings.debounce > Date.now() - lastClick) return;
     lastClick = Date.now();
 
