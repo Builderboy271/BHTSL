@@ -224,8 +224,8 @@ register('guiMouseClick', (x, y, mouseButton) => {
 
     if (isButtonHovered(refreshFiles, x, y)) { readFiles(); World.playSound('random.click', 0.5, 1); }
     if (subDir != "" && isButtonHovered(backDir, x, y)) {
-        let tempDir = subDir.endsWith("\\") ? subDir.slice(0, -1) : subDir;
-        let lastIdx = tempDir.lastIndexOf("\\");
+        let tempDir = subDir.endsWith("/") ? subDir.slice(0, -1) : subDir;
+        let lastIdx = tempDir.lastIndexOf("/");
         subDir = lastIdx !== -1 ? tempDir.slice(0, lastIdx + 1) : "";
         readFiles();
         World.playSound('random.click', 0.5, 1);
