@@ -159,6 +159,14 @@ class Settings {
 	guiAvaliableEverywhere = false;
 
 	@SwitchProperty({
+		name: "Render GUI Above Potion Effects",
+		description: "Show the GUI ontop of potion effects in the player inventory. This can cause issues if you are using other mods that change the inventory screen",
+		category: "Import Menu",
+		subcategory: "Import Menu"
+	})
+	renderGUIAbovePotionEffects = false;
+
+	@SwitchProperty({
 		name: "Global Search",
 		description: "Search all subdirectories at once instead of just the current directory",
 		category: "Import Menu",

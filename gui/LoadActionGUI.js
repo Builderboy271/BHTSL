@@ -154,13 +154,7 @@ function renderActionGUI(x, y) {
 				if (input.getText() != "Enter File Name" && input.getText() != "" && currentWidth <= maxTextWidth) {
 					let searchIdx = displayName.toLowerCase().indexOf(input.getText().toLowerCase());
 					if (searchIdx !== -1) {
-						Renderer.drawRect(
-							Renderer.color(252, 229, 15, 100), 
-							input.getX() + 21 + Renderer.getStringWidth(displayName.substring(0, searchIdx)), 
-							topBound + 5 + 20 * (i - page * linesPerPage), 
-							Renderer.getStringWidth(input.getText()), 
-							17
-						);
+						Renderer.drawRect(Renderer.color(252, 229, 15, 100), input.getX() + 21 + Renderer.getStringWidth(displayName.substring(0, searchIdx)), topBound + 5 + 20 * (i - page * linesPerPage), Renderer.getStringWidth(input.getText()), 17);
 					}
 				}
             }
@@ -177,7 +171,7 @@ function renderActionGUI(x, y) {
             if (page > 0) backwardPage.render(x, y);
             refreshFiles.render(x, y);
         }
-    } catch (e) { console.log(e) }
+    } catch (e) {console.log(e)}
 
     if (Settings.toggleFileExplorer) {
         toggleShow.setX(input.getX() - 15);
@@ -191,11 +185,11 @@ function renderActionGUI(x, y) {
 }
 
 register('guiRender', (x, y) => {
-	if (Client.currentGui.getClassName() !== "GuiContainerCreative") renderActionGUI(x, y);
+	if (Client.currentGui.getClassName() !== "GuiContainerCreative" || !Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y);
 });
 
 register('postGuiRender', (x, y) => {
-	if (Client.currentGui.getClassName() === "GuiContainerCreative") renderActionGUI(x, y);
+	if (Client.currentGui.getClassName() === "GuiContainerCreative" && Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y);
 });
 
 register('guiKey', (char, keyCode, gui, event) => {

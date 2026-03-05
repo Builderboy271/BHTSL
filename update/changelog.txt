@@ -1,6 +1,7 @@
 Patch v2.0.0:
 
 - Action GUI will show in menus where items can be imported, even if scripts cannot (option)
+- Action GUI will show above potion effects in the player inventory (option)
 - Action GUI now has an option for global searching (option)
 - Action GUI now truncates file names
 - Action GUI sounds have been improved
