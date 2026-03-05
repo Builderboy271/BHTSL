@@ -44,7 +44,7 @@ let hoveringIndex;
 let renderItemIcons = [];
 let isGlobalSearching = false;
 
-register('postGuiRender', (x, y) => {
+function renderActionGUI(x, y) {
     if (!Player.getContainer() || !isInItemGui() || isImporting()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
@@ -181,6 +181,14 @@ register('postGuiRender', (x, y) => {
     input.render();
     importButton.render(x, y);
     exportButton.render(x, y);
+}
+
+register('guiRender', (x, y) => {
+	if (Client.currentGui.getClassName() !== "GuiContainerCreative") renderActionGUI(x, y);
+});
+
+register('postGuiRender', (x, y) => {
+	if (Client.currentGui.getClassName() === "GuiContainerCreative") renderActionGUI(x, y);
 });
 
 register('guiKey', (char, keyCode, gui, event) => {
@@ -340,16 +348,19 @@ function readDir(path, walk) {
 }
 
 function isInItemGui() {
-    let name = Client.currentGui.getClassName();
-    if (name === "GuiContainerCreative") return true;
-    if (name === "GuiEditSign") return false;
-    if (Player.getContainer().getClassName() !== "ContainerChest") return false;
-    if (Player.getContainer().getName().match(/Edit Actions|Actions: /)) return true;
-    return Player.asPlayerMP().player.field_71075_bZ.field_75098_d !== false;
+	if (Client.currentGui.getClassName() === "GuiContainerCreative") return true;
+	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
+	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
+	if (Player.getContainer().getName().match(/Edit Actions|Actions: /)) return true;
+	if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) return false;
+	return true;
 }
 
 function isInActionGui() {
-    return Player.getContainer().getClassName() === "ContainerChest" && Player.getContainer().getName().match(/Edit Actions|Actions: /);
+	if (Client.currentGui.getClassName() === "GuiEditSign") return false;
+	if (Player.getContainer().getClassName() !== "ContainerChest") return false;
+	if (Player.getContainer().getName().match(/Edit Actions|Actions: /)) return true;
+	return false;
 }
 
 register('guiOpened', () => setTimeout(readFiles, 50));
