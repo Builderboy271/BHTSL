@@ -106,7 +106,7 @@ function renderActionGUI(x, y) {
                 }
 
                 let item = null;
-                let pathKey = currentFile.replace(/\\/g, "/");
+                let pathKey = currentFile;
                 if (Settings.itemIcons && currentFile.endsWith(".json")) {
                     if (renderItemIcons[pathKey]) item = renderItemIcons[pathKey];
                     else {
@@ -147,7 +147,7 @@ function renderActionGUI(x, y) {
 					baseName += "...";
 				}
 
-                let renderedName = baseName + extension;
+                let renderedName = baseName.replaceAll("/", "&8/&r") + extension;
 				
 				Renderer.drawString(renderedName, input.getX() + 21, topBound + 9 + 20 * (i - page * linesPerPage), true);
 
@@ -163,10 +163,10 @@ function renderActionGUI(x, y) {
 
             if (subDir != "") {
                 backDir.render(x, y);
-                Renderer.drawString("&7" + subDir.replace(/\\/g, "/").slice(0, -1), chestX / 2 - Renderer.getStringWidth("/" + subDir.replace(/\\/g, "/")) / 2, topBound - 10, true);
+                Renderer.drawString("&7" + subDir.replaceAll("/", "&8/&7").slice(0, -5), chestX / 2 - Renderer.getStringWidth("/" + subDir) / 2, topBound - 10, true);
             }
 
-            if (linesPerPage < filteredFiles.length) Renderer.drawString("&7" + page, input.getWidth() / 2 + input.getX(), input.getY() + 393, true);
+            if (linesPerPage < filteredFiles.length) Renderer.drawString("&7" + (page + 1) + "&8/&7" + Math.ceil(filteredFiles.length / linesPerPage), input.getWidth() / 2 + input.getX(), input.getY() + 393, true);
             if ((page + 1) * linesPerPage < filteredFiles.length) forwardPage.render(x, y);
             if (page > 0) backwardPage.render(x, y);
             refreshFiles.render(x, y);
@@ -265,13 +265,13 @@ register('guiMouseClick', (x, y, mouseButton) => {
             if (selected.includes(".") && x < input.getX() + input.getWidth() - 8 && x > input.getX() + input.getWidth() - 24) {
                 World.playSound('random.fizz', 0.1, 1);
 				World.playSound('liquid.lavapop', 0.5, 0.5);
-                FileLib.delete("BHTSL", `imports/${selected.replace(/\\/g, "/")}`);
+                FileLib.delete("BHTSL", `imports/${selected}`);
                 readFiles();
                 return;
             }
             if (selected.endsWith('.htsl')) {
                 if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) ChatLib.command("gmc");
-                if (compile(selected.substring(0, selected.length - 5).replace(/\\/g, "/"))) World.playSound('random.click', 0.5, 1);
+                if (compile(selected.substring(0, selected.length - 5))) World.playSound('random.click', 0.5, 1);
             } else if (selected.endsWith("/")) {
                 subDir = selected;
                 readFiles();
@@ -281,7 +281,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
                     World.playSound('mob.villager.no', 1, 1);
                     return ChatLib.chat(`&3[BHTSL] &cMust be in creative mode to import an item!`);
                 }
-                let content = FileLib.read('BHTSL', `/imports/${selected.replace(/\\/g, "/")}`);
+                let content = FileLib.read('BHTSL', `/imports/${selected}`);
                 if (content) {
                     let item = getItemFromNBT(JSON.parse(content).item);
                     let slot = Player.getInventory().getItems().indexOf(null);
