@@ -1,9 +1,8 @@
-Patch v2.0.0:
+Patch v2.0.1:
 
-- Action GUI will show in menus where items can be imported, even if scripts cannot (option)
-- Action GUI will show above potion effects in the player inventory (option)
-- Action GUI now has an option for global searching (option)
-- Action GUI now truncates file names
-- Action GUI sounds have been improved
-- Action GUI now shows current page number
-- Action GUI forward and backward directory buttons now support shift clicking to move 10 pages
+- Added setting for refreshing the file explorer every time it is opened (option)
+- Added caching to global search, resulting in much faster searching speed
+- Truncation now occurs from the left, instead of the right
+- Fixed item conditions being inverted on export
+- Fixed item conditions being exported with stone sword items
+- Fixed exported item files being placed in the incorrect directory
