@@ -19,10 +19,6 @@ import { compile } from './compiler/compile';
 import Settings from './utils/config';
 import request from 'requestv2';
 
-if (Settings.startupVersionCheck) setTimeout(() => {
-    checkVersion();
-}, 3000);
-
 register("command", ...args => {
     let command;
     try {
@@ -208,7 +204,10 @@ function getMatchedFileName(path, filePath) {
     if (pathMatchArray) return pathMatchArray[1];
 
     return null;
-
 }
 
+if (Settings.loadMessage) ChatLib.chat("&3[BHTSL] &fLoaded successfully! &7v&f" + JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version);
 
+if (Settings.startupVersionCheck) setTimeout(() => {
+    checkVersion();
+}, 3000);
