@@ -60,6 +60,22 @@ class Settings {
 	cancelSounds = true;
 
 	@SwitchProperty({
+		name: "Check for new version on startup",
+		description: "Checks if there is a new version of BHTSL published on Github when chattriggers is loaded",
+		category: "General",
+		subcategory: "General",
+	})
+	startupVersionCheck = true;
+
+	@SwitchProperty({
+		name: "Check for new version periodically",
+		description: "Checks if there is a new version of BHTSL published on Github every 30 minutes",
+		category: "General",
+		subcategory: "General",
+	})
+	periodicVersionCheck = true;
+
+	@SwitchProperty({
 		name: "Emergency reload button",
 		description: 'Reloads chattriggers in case of softlock. Mainly use for debugging.',
 		category: "General",

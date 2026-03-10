@@ -249,13 +249,12 @@ register('guiMouseClick', (x, y, mouseButton) => {
         inputEnabled = false;
     }
 
-    if (isButtonHovered(refreshFiles, x, y)) { cachedFiles = null; lastSearchPath = null; readFiles(); World.playSound('random.click', 0.5, 1); }
+    if (isButtonHovered(refreshFiles, x, y)) { readFiles(true); World.playSound('random.click', 0.5, 1); }
     if (subDir != "" && isButtonHovered(backDir, x, y)) {
         let tempDir = subDir.endsWith("/") ? subDir.slice(0, -1) : subDir;
         let lastIdx = tempDir.lastIndexOf("/");
         subDir = lastIdx !== -1 ? tempDir.slice(0, lastIdx + 1) : "";
-        lastSearchPath = null;
-        readFiles();
+        readFiles(true);
         World.playSound('random.click', 0.5, 1);
     }
     if ((page + 1) * linesPerPage < filteredFiles.length && isButtonHovered(forwardPage, x, y)) {
@@ -278,7 +277,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
         show = !show;
         World.playSound('random.click', 0.5, 1);
         toggleShow.setText(show ? '⇧' : '⇩');
-        readFiles();
+        readFiles(true);
     }
 
     handleInputClick(importButton, compile, x, y);
@@ -299,8 +298,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
                 World.playSound('random.fizz', 0.1, 1);
 				World.playSound('liquid.lavapop', 0.5, 0.5);
                 FileLib.delete("BHTSL", `imports/${selected}`);
-                cachedFiles = null;
-                readFiles();
+                readFiles(true);
                 return;
             }
             if (selected.endsWith('.htsl')) {
@@ -309,9 +307,7 @@ register('guiMouseClick', (x, y, mouseButton) => {
                 if (compile(selected.substring(0, selected.length - 5))) World.playSound('random.click', 0.5, 1);
             } else if (selected.endsWith("/")) {
                 subDir = selected;
-                lastSearchPath = null;
-                cachedFiles = null;
-                readFiles();
+                readFiles(true);
                 World.playSound('random.click', 0.5, 1);
             } else {
                 if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) {
@@ -341,7 +337,6 @@ function handleInputClick(button, action, x, y) {
         input.setSelectionEnd(0);
         input.setCursorPosition(0);
         input.setIsFocused(false);
-        if (!Settings.saveFile || fileName == "default") input.setText('Enter File Name');
     }
 }
 
@@ -349,7 +344,11 @@ function isButtonHovered(button, x, y) {
     return x > button.getX() && x < button.getX() + button.getWidth() && y > button.getY() && y < button.getY() + button.getHeight();
 }
 
-function readFiles() {
+function readFiles(forceRefresh = false) {
+    if (forceRefresh) {
+        cachedFiles = null;
+        lastSearchPath = null;
+    }
     page = 0;
     renderItemIcons = [];
     if (Settings.toggleFileExplorer && !show) return;
@@ -446,7 +445,7 @@ function isInActionGui() {
 }
 
 register('guiOpened', () => {
-    if (Settings.refreshFileExplorerAutomatically) readFiles();
+    if (Settings.refreshFileExplorerAutomatically) readFiles(true);
 });
 
 export function getSubDir() { return subDir; }

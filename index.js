@@ -11,13 +11,17 @@ import { convertHE } from './compiler/convertAction';
 import { preProcess } from './compiler/compile';
 import { addOperation } from './gui/Queue';
 import Navigator from './gui/Navigator';
-import "./update/update";
+import { checkVersion } from "./update/update";
 import getItemFromNBT from './utils/getItemFromNBT';
 import loadItemstack from './utils/loadItemstack';
 import { loadAction } from './compiler/loadAction';
 import { compile } from './compiler/compile';
 import Settings from './utils/config';
 import request from 'requestv2';
+
+if (Settings.startupVersionCheck) setTimeout(() => {
+    checkVersion();
+}, 3000);
 
 register("command", ...args => {
     let command;
@@ -44,6 +48,7 @@ register("command", ...args => {
         changelog.forEach(line => {
             ChatLib.chat("&8" + line.trim().slice(0, 1) + "&f" + line.trim().slice(1));
         });
+        checkVersion();
         return;
     }
     if (command === 'latestchangelog') {
@@ -106,7 +111,9 @@ register("command", ...args => {
         });
     }
     if (command === "version") {
-        return ChatLib.chat(`&3[BHTSL] &7v&f${JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version}`);
+        ChatLib.chat(`&3[BHTSL] &7v&f${JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version}`);
+        checkVersion();
+        return;
     }
     if (command === "giveitem") {
         if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) {
@@ -132,7 +139,8 @@ register("command", ...args => {
             loadAction(actions, Settings.deleteOnCommandImport);
             return;
         } else {
-            return ChatLib.chat("&3[BHTSL] &cFile not found!");
+            ChatLib.chat("&3[BHTSL] &cFile not found!");
+            return;
         }
     }
     if (command === 'help') {
