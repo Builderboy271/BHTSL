@@ -12,14 +12,6 @@ class Settings {
 	// General
 
 	@SwitchProperty({
-		name: "Save Import File Name",
-		description: 'Will keep the name of your import inbetween imports so you don\'t have to type the same name multiple times',
-		category: "General",
-		subcategory: "General",
-	})
-	saveFile = false;
-
-	@SwitchProperty({
 		name: "Load Message",
 		description: 'Toggles whether or not the load message shows. Doesn\'t disable update-check',
 		category: "General",
