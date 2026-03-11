@@ -27,7 +27,7 @@ register("command", ...args => {
         command = 'help';
     }
     if (command === 'config') return Config.openGUI();
-    if (command === 'gui') {
+    if (command === 'edit') {
         args.shift();
         return codeWindow(`${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${args.join(' ')}`);
     }
@@ -142,7 +142,7 @@ register("command", ...args => {
     if (command === 'help') {
         ChatLib.chat('&8&m-------------------------------------------------');
         ChatLib.chat('&6/bhtsl help &7Opens the BHTSL help menu!')
-        ChatLib.chat('&6/bhtsl gui <script name> &7Opens a window for editing scripts!');
+        ChatLib.chat('&6/bhtsl edit <script name> &7Opens a window for editing scripts!');
         ChatLib.chat('&6/bhtsl config &7Opens the settings menu for BHTSL!');
         ChatLib.chat('&6/bhtsl guide &7Opens a syntax guide!');
         ChatLib.chat('&6/bhtsl changelog &7Shows you all the significant changes made in the last update!');
