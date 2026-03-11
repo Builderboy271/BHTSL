@@ -4,7 +4,7 @@ import exportAction from '../compiler/exportAction';
 import Settings from '../utils/config';
 import getItemFromNBT from '../utils/getItemFromNBT';
 import loadItemstack from '../utils/loadItemstack';
-import codeWindow from '../gui/codeWindow';
+import codeWindow, { isCodeOpen } from '../gui/codeWindow';
 
 const guiTopField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_147009_r');
 const xSizeField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_146999_f');
@@ -29,6 +29,7 @@ const nh_htslIcon = new Image(javax.imageio.ImageIO.read(new java.io.File(`./con
 const nh_itemIcon = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/nh_item.png`)));
 const nh_folderIcon = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/nh_folder.png`)));
 const editPen = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/pen.png`)));
+const hoverEditPen = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/pen_hover.png`)));
 const trashBin = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/bin_closed.png`)));
 const openTrashBin = new Image(javax.imageio.ImageIO.read(new java.io.File(`./config/ChatTriggers/modules/BHTSL/assets/bin.png`)));
 
@@ -53,7 +54,7 @@ let searchTimeout = null;
 let lastSearchPath = null;
 
 function renderActionGUI(x, y) {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
@@ -109,7 +110,7 @@ function renderActionGUI(x, y) {
                     
                     if (currentFile.endsWith(".htsl")) {
                         let isHoveringPen = (x < xBound - 24 && x > xBound - 40);
-                        Renderer.drawImage(isHoveringPen ? openTrashBin : editPen, xBound - 40, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
+                        Renderer.drawImage(isHoveringPen ? hoverEditPen : editPen, xBound - 40, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
                     if (currentFile.endsWith(".htsl") || currentFile.endsWith(".json")) {
                         let isHoveringTrash = (x < xBound - 4 && x > xBound - 20);
@@ -227,7 +228,7 @@ let lastClick = 0;
 let inputEnabled = false;
 
 register('guiMouseClick', (x, y, mouseButton) => {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
     if (Settings.debounce > Date.now() - lastClick) return;
     lastClick = Date.now();
 
@@ -283,13 +284,13 @@ register('guiMouseClick', (x, y, mouseButton) => {
         let fileIdx = index + (page * linesPerPage);
         if (filteredFiles[fileIdx]) {
             let selected = filteredFiles[fileIdx];
-            if (selected.endsWith('.htsl') && x < input.getX() + input.getWidth() - 28 && x > input.getX() + input.getWidth() - 40) {
+            if (selected.endsWith('.htsl') && x < input.getX() + input.getWidth() - 24 && x > input.getX() + input.getWidth() - 40) {
                 World.playSound('random.fizz', 0.1, 1);
                 World.playSound('liquid.lavapop', 0.5, 0.5);
                 codeWindow(`${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${selected.substring(0, selected.length - 5)}`);
                 return;
             }
-            if (selected.includes(".") && x < input.getX() + input.getWidth() - 8 && x > input.getX() + input.getWidth() - 20) {
+            if (selected.includes(".") && x < input.getX() + input.getWidth() - 4 && x > input.getX() + input.getWidth() - 20) {
                 World.playSound('random.fizz', 0.1, 1);
 				World.playSound('liquid.lavapop', 0.5, 0.5);
                 FileLib.delete("BHTSL", `imports/${selected}`);
