@@ -1,8 +1,12 @@
-Patch v2.0.1:
+Patch v2.0.2:
 
-- Added setting for refreshing the file explorer every time it is opened (option)
-- Added caching to global search, resulting in much faster searching speed
-- Truncation now occurs from the left, instead of the right
-- Fixed item conditions being inverted on export
-- Fixed item conditions being exported with stone sword items
-- Fixed exported item files being placed in the incorrect directory
+- Added edit button to action GUI files (option)
+- Added version check every 30 minutes (option)
+- Added version check to "/bhtsl version" and "/bhtsl changelog"
+- Added pulling update information from the latest github release instead of the repository
+- Replaced Axios dependency with Requestv2
+- Reworked code window
+- Renamed "/bhtsl gui" to "/bhtsl edit"
+- Fixed action GUI button hitboxes
+- Removed bugged search highlighting
+- Removed unused save file option
