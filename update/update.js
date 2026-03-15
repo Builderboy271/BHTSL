@@ -2,7 +2,7 @@ import request from "requestv2";
 import Settings from "../utils/config";
 
 let newVersionShown = false;
-const currentVersion = JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version;
+const currentVersion = ChatTriggers.MODVERSION;
 const currentSplit = currentVersion.split(".");
 
 export const checkVersion = () => {

@@ -6,6 +6,9 @@ import getItemFromNBT from '../utils/getItemFromNBT';
 import loadItemstack from '../utils/loadItemstack';
 import codeWindow, { isCodeOpen } from '../gui/codeWindow';
 
+const Desktop = Java.type("java.awt.Desktop");
+const File = Java.type("java.io.File");
+
 const guiTopField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_147009_r');
 const xSizeField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_146999_f');
 guiTopField.setAccessible(true);
@@ -108,7 +111,7 @@ function renderActionGUI(x, y) {
                     hovered = true;
                     Renderer.drawRect(Renderer.color(60, 60, 60, 200), input.getX() - 3, topBound + 2 + 20 * (i - page * linesPerPage), input.getWidth() + 6, 21);
                     
-                    if (currentFile.endsWith(".htsl")) {
+                    if (Settings.showEditButtonInImportMenu && currentFile.endsWith(".htsl")) {
                         let isHoveringPen = (x < xBound - 24 && x > xBound - 40);
                         Renderer.drawImage(isHoveringPen ? hoverEditPen : editPen, xBound - 40, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
@@ -284,10 +287,32 @@ register('guiMouseClick', (x, y, mouseButton) => {
         let fileIdx = index + (page * linesPerPage);
         if (filteredFiles[fileIdx]) {
             let selected = filteredFiles[fileIdx];
-            if (selected.endsWith('.htsl') && x < input.getX() + input.getWidth() - 24 && x > input.getX() + input.getWidth() - 40) {
-                World.playSound('random.fizz', 0.1, 1);
-                World.playSound('liquid.lavapop', 0.5, 0.5);
-                codeWindow(`${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${selected.substring(0, selected.length - 5)}`);
+            if (Settings.showEditButtonInImportMenu && selected.endsWith('.htsl') && x < input.getX() + input.getWidth() - 24 && x > input.getX() + input.getWidth() - 40) {
+                World.playSound('dig.cloth', 0.75, 1.5);
+                World.playSound('dig.snow', 0.75, 1.5);
+                if (Settings.useExternalEditor) {
+                    let moduleBase = Config.modulesFolder + "/BHTSL/imports/"; 
+                    let subDirPath = Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "";
+
+                    let fullPath = moduleBase + subDirPath + selected;
+                    let file = new File(fullPath);
+
+                    try {
+                        if (file.exists()) {
+                            if (Desktop.isDesktopSupported()) {
+                                Desktop.getDesktop().open(file);
+                            } else {
+                                ChatLib.chat("&3[BHTSL] &cDesktop operations are not supported on this OS.");
+                            }
+                        } else {
+                            ChatLib.chat("&3[BHTSL] &cCould not find file at: &7" + file.getAbsolutePath());
+                        }
+                    } catch (e) {
+                        ChatLib.chat("&3[BHTSL] &cError opening file: &7" + e.message);
+                    }
+                } else {
+                    codeWindow(`${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${selected.substring(0, selected.length - 5)}`);
+                }
                 return;
             }
             if (selected.includes(".") && x < input.getX() + input.getWidth() - 4 && x > input.getX() + input.getWidth() - 20) {

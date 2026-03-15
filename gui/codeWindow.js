@@ -166,7 +166,7 @@ export default (fileName) => {
         FileLib.write(path + ".htsl", "");
         guiText = [""];
     } else {
-        ChatLib.chat(`&3[BHTSL] &fLoading ${fileName}`);
+        ChatLib.chat(`&3[BHTSL] &fLoading ${fileName}.htsl`);
         guiText = FileLib.read(fullPath).split("\n");
     }
 

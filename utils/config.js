@@ -2,7 +2,7 @@ import { @Vigilant @SliderProperty @SwitchProperty @NumberProperty @TextProperty
 
 @Vigilant("BHTSL", `BHTSL`, {
 	getCategoryComparator: () => (a, b) => {
-		const categories = ["General", "Importing/Exporting", "Import Menu"];
+		const categories = ["General", "Importing/Exporting", "Import Menu", "Code Window"];
 
 		return categories.indexOf(a.name) - categories.indexOf(b.name);
 	},
@@ -180,6 +180,24 @@ class Settings {
 		subcategory: "Import Menu"
 	})
 	globalSearch = false;
+
+	// Code Window
+
+	@SwitchProperty({
+		name: "Show Edit Button in Import Menu",
+		description: "Show the edit pen button in the import menu for .htsl files",
+		category: "Code Window",
+		subcategory: "Code Window"
+	})
+	showEditButtonInImportMenu = true;
+
+	@SwitchProperty({
+		name: "Use External Editor",
+		description: "Use the default file editor for .htsl files instead of the built-in code window",
+		category: "Code Window",
+		subcategory: "Code Window"
+	})
+	useExternalEditor = false;
 	
 	constructor() {
 		this.initialize(this);

@@ -206,8 +206,12 @@ function getMatchedFileName(path, filePath) {
     return null;
 }
 
-if (Settings.loadMessage) ChatLib.chat("&3[BHTSL] &fLoaded successfully! &7v&f" + JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version);
+let load = register("worldLoad", () => {
+    if (Settings.loadMessage) ChatLib.chat("&3[BHTSL] &fLoaded successfully! &7v&f" + JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version);
+    
+    if (Settings.startupVersionCheck) setTimeout(() => {
+        checkVersion();
+    }, 3000);
 
-if (Settings.startupVersionCheck) setTimeout(() => {
-    checkVersion();
-}, 3000);
+    load.unregister();
+});
