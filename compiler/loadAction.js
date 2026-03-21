@@ -167,5 +167,4 @@ function importComponent(component, menu, condition) {
                 addOperation({ type: 'input', text: component[key] });
         }
     }
-
 }
