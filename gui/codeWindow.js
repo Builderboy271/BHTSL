@@ -10,6 +10,95 @@ let startIndex = 0;
 let lineLimit = Math.floor((Renderer.screen.getHeight() - 7) / 20);
 let originalRepeat = false;
 
+// ========================
+// NEW: Line wrapping helpers
+// ========================
+function wrapLine(line, maxW) {
+    if (!line || line.length === 0) {
+        return [{escaped: "", origStart: 0, origEnd: 0}];
+    }
+    let subs = [];
+    let pos = 0;
+    while (pos < line.length) {
+        let startPos = pos;
+        let goodPos = pos;
+        for (let j = pos; j < line.length; j++) {
+            let prefix = line.substring(startPos, j + 1);
+            let esc = prefix.replace(/&([0-9a-fk-or])/gi, "&⛓$1");
+            if (Renderer.getStringWidth(esc) <= maxW) {
+                goodPos = j + 1;
+            } else {
+                break;
+            }
+        }
+        if (goodPos === startPos) goodPos = startPos + 1; // force at least one char
+        let prefixOrig = line.substring(startPos, goodPos);
+        let escSub = prefixOrig.replace(/&([0-9a-fk-or])/gi, "&⛓$1");
+        subs.push({escaped: escSub, origStart: startPos, origEnd: goodPos});
+        pos = goodPos;
+    }
+    return subs;
+}
+
+function getMaxTextWidth(digitCount) {
+    const sample = ("0".repeat(digitCount) + " ⏐ ");
+    return Renderer.screen.getWidth() / 2 - 14 - Renderer.getStringWidth(sample);
+}
+
+function getVisualLinesBefore(logical, startIdx, maxW) {
+    let visual = 0;
+    for (let l = startIdx; l < logical; l++) {
+        visual += wrapLine(guiText[l] || "", maxW).length;
+    }
+    return visual;
+}
+
+function getCursorSubInfo(logicalIdx, maxW) {
+    let currentLineText = guiText[logicalIdx] || "";
+    let wrapped = wrapLine(currentLineText, maxW);
+    let remaining = cursorIndex;
+    let subIdx = 0;
+    for (subIdx = 0; subIdx < wrapped.length; subIdx++) {
+        let len = wrapped[subIdx].origEnd - wrapped[subIdx].origStart;
+        if (remaining <= len) break;
+        remaining -= len;
+    }
+    if (subIdx >= wrapped.length) subIdx = wrapped.length - 1;
+    let subStart = wrapped[subIdx].origStart;
+    let beforeLenInSub = remaining;
+    let prefixOrig = currentLineText.substring(subStart, subStart + beforeLenInSub);
+    let beforeEsc = prefixOrig.replace(/&([0-9a-fk-or])/gi, "&⛓$1");
+    return {subIdx, beforeEsc};
+}
+
+function ensureCursorVisible() {
+    if (!codeIsOpen) return;
+    const digitCount = guiText.length.toString().length || 1;
+    const maxW = getMaxTextWidth(digitCount);
+    const lineLim = Math.floor((Renderer.screen.getHeight() - 7) / 20);
+    let logical = startIndex + cursorLine;
+    if (logical >= guiText.length) logical = Math.max(0, guiText.length - 1);
+    let visualBefore = getVisualLinesBefore(logical, startIndex, maxW);
+    let subInfo = getCursorSubInfo(logical, maxW);
+    let cursorVisual = visualBefore + subInfo.subIdx;
+
+    // Scroll down (if cursor is below visible area)
+    while (cursorVisual >= lineLim && startIndex < logical) {
+        startIndex++;
+        visualBefore = getVisualLinesBefore(logical, startIndex, maxW);
+        cursorVisual = visualBefore + subInfo.subIdx;
+    }
+    cursorLine = logical - startIndex;
+
+    // Scroll up (rare, but safe)
+    while (cursorVisual < 0 && startIndex > 0) {
+        startIndex--;
+        visualBefore = getVisualLinesBefore(logical, startIndex, maxW);
+        cursorVisual = visualBefore + subInfo.subIdx;
+    }
+    cursorLine = logical - startIndex;
+}
+
 register(net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent.Pre, (event) => {
     if (codeIsOpen) cancel(event);
 });
@@ -27,27 +116,70 @@ register("postGuiRender", () => {
     lineLimit = Math.floor((Renderer.screen.getHeight() - 7) / 20);
     const digitCount = guiText.length.toString().length;
 
-    for (let i = startIndex; i < lineLimit + startIndex && i < guiText.length; i++) {
-        if (guiText[i] !== undefined) {
-            let displayText = guiText[i].replace(/&([0-9a-fk-or])/gi, "&⛓$1");
-            if (displayText.startsWith("//")) {
-                displayText = displayText.replace(/&(\d+|[a-f])/g, '&&2$1');
+    // We use "0" as our width-standard because Minecraft numbers are mostly uniform width
+    // This prefix is used to calculate exactly where the text should start
+    const samplePrefix = "0".repeat(digitCount) + " ⏐ ";
+    const prefixWidth = Renderer.getStringWidth(samplePrefix);
+    const maxTextWidth = Renderer.screen.getWidth() / 2 - 14 - prefixWidth;
+
+    let visualIndex = 0;
+    for (let i = startIndex; i < guiText.length && visualIndex < lineLimit; i++) {
+        let lineText = guiText[i] || "";
+        let wrapped = wrapLine(lineText, maxTextWidth);
+        
+        for (let subIdx = 0; subIdx < wrapped.length && visualIndex < lineLimit; subIdx++) {
+            let subEsc = wrapped[subIdx].escaped;
+
+            // Syntax Pre-processing
+            let processed;
+            if (lineText.startsWith("//")) {
+                processed = subEsc.replace(/&(\d+|[a-f])/g, '&&2$1');
             } else {
-                displayText = displayText.replace(/"(.*?)"/g, '&2"$1&2"&f');
+                processed = subEsc.replace(/"(.*?)"/g, '&2"$1&2"&f');
             }
-            Renderer.drawString(`&7${("0".repeat(digitCount) + (i + 1)).slice(-digitCount)} ⏐ &f${syntaxHighlight(displayText)}`, Renderer.screen.getWidth() / 4 + 7, Renderer.screen.getHeight() / 4 + (i - startIndex) * 10 + 7, true);
+
+            let subDisplay = lineText.startsWith("//") ? "&2" + processed : syntaxHighlight(processed);
+
+            // --- ALIGNMENT FIX START ---
+            let lineNumStr;
+            if (subIdx === 0) {
+                // Normal line: Gray numbers + White separator
+                lineNumStr = `&7${("0".repeat(digitCount) + (i + 1)).slice(-digitCount)} &f⏐ &f`;
+            } else {
+                // Wrapped line: Use "Ghost" numbers (Dark Gray &8) to match pixel width exactly
+                // This replaces " ".repeat(digitCount) which was causing the misalignment
+                lineNumStr = `&8${"-".repeat(digitCount)} &f⏐ &f`;
+            }
+            // --- ALIGNMENT FIX END ---
+
+            Renderer.drawString(lineNumStr + subDisplay, Renderer.screen.getWidth() / 4 + 7, Renderer.screen.getHeight() / 4 + visualIndex * 10 + 7, true);
+            visualIndex++;
         }
     }
 
     // Cursor Logic
     cursorBlink = (cursorBlink + 1) % 100;
     if (cursorBlink >= 50) {
-        let currentLineText = guiText[cursorLine + startIndex] || "";
-        let textBeforeCursor = currentLineText.substring(0, cursorIndex).replace(/&([0-9a-fk-or])/gi, "&⛓$1");
-        let linePrefix = `${("0".repeat(digitCount) + (cursorLine + startIndex + 1)).slice(-digitCount)} ⏐ `;
+        let logicalIdx = startIndex + cursorLine;
         
-        let x = Renderer.screen.getWidth() / 4 + 7 + Renderer.getStringWidth(linePrefix + textBeforeCursor);
-        let y = Renderer.screen.getHeight() / 4 + (cursorLine) * 10 + 7;
+        // Use the EXACT same maxTextWidth used in the render loop
+        const samplePrefixCursor = "0".repeat(digitCount) + " ⏐ ";
+        const prefixWidthCursor = Renderer.getStringWidth(samplePrefixCursor);
+        const maxTextWidthCursor = Renderer.screen.getWidth() / 2 - 14 - prefixWidthCursor;
+
+        let subInfo = getCursorSubInfo(logicalIdx, maxTextWidthCursor);
+        let textBeforeCursor = subInfo.beforeEsc;
+
+        // FIXED: The linePrefix must match the rendered string's character count exactly.
+        // We calculate the width of the gutter (numbers + separator) 
+        // using the same sample string as the renderer.
+        let linePrefixWidth = Renderer.getStringWidth(samplePrefixCursor);
+
+        let cursorVisualRow = getVisualLinesBefore(logicalIdx, startIndex, maxTextWidthCursor) + subInfo.subIdx;
+
+        // We add the gutter width to the width of the text before the cursor
+        let x = Renderer.screen.getWidth() / 4 + 7 + linePrefixWidth + Renderer.getStringWidth(textBeforeCursor);
+        let y = Renderer.screen.getHeight() / 4 + cursorVisualRow * 10 + 7;
         
         Renderer.drawRect(Renderer.color(200, 200, 200, 256), x, y, 1, 8);
     }
@@ -69,6 +201,7 @@ register("guiKey", (char, keyCode, gui, event) => {
             cursorLine++;
         }
         cursorIndex = 0;
+        ensureCursorVisible();
         return;
     }
 
@@ -85,6 +218,7 @@ register("guiKey", (char, keyCode, gui, event) => {
             if (cursorLine > 0) cursorLine--;
             else if (startIndex > 0) startIndex--;
         }
+        ensureCursorVisible();
         return;
     }
 
@@ -93,6 +227,7 @@ register("guiKey", (char, keyCode, gui, event) => {
         let spaces = "    ";
         guiText[startIndex + cursorLine] = line.substring(0, cursorIndex) + spaces + line.substring(cursorIndex);
         cursorIndex += spaces.length;
+        ensureCursorVisible();
         return;
     }
 
@@ -105,6 +240,7 @@ register("guiKey", (char, keyCode, gui, event) => {
             guiText[startIndex + cursorLine] += guiText[nextLineIndex];
             guiText.splice(nextLineIndex, 1);
         }
+        ensureCursorVisible();
         return;
     }
 
@@ -149,13 +285,18 @@ register("guiKey", (char, keyCode, gui, event) => {
         }
     }
 
-    if (/[^\x20-\x7E]/.test(char)) return;
+    if (/[^\x20-\x7E]/.test(char)) {
+        ensureCursorVisible();
+        return;
+    }
 
     // Normal Character Input
     if (keyCode > 1 && keyCode < 150 && keyCode !== 14 && keyCode !== 28 && keyCode !== 1) {
         guiText[startIndex + cursorLine] = line.substring(0, cursorIndex) + char + line.substring(cursorIndex);
         cursorIndex++;
     }
+
+    ensureCursorVisible();
 });
 
 export default (fileName) => {
