@@ -146,6 +146,7 @@ register("command", ...args => {
         ChatLib.chat('&6/bhtsl giveitem <filename> &7Gives you an item from your imports');
         ChatLib.chat('&6/bhtsl import <filename> &7Imports given file (ignores default context)');
         ChatLib.chat('&8&m-------------------------------------------------');
+        return;
     }
     if (command === '_latestchangelog') {
         request("https://api.github.com/repos/Builderboy271/BHTSL/releases/latest").then(response => {
@@ -209,12 +210,6 @@ register("command", ...args => {
     }
 }).setName('bhtsl').setAliases(['htsl', 'bht', 'ht']);
 
-/**
- * Obtains a list of file names from a directory.
- * @param {string} path The path to the directory to walk.
- * @param {boolean} walk `true` if the function should walk deeper into directories.
- * @returns
- */
 function readDir(path, walk) {
     let files = new java.io.File(path).listFiles();
     let fileNames = [];
