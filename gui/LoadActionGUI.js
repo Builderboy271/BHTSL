@@ -55,6 +55,7 @@ let cacheTimestamp = 0;
 let CACHE_DURATION = 5000; // Cache for 5 seconds
 let searchTimeout = null;
 let lastSearchPath = null;
+let originalRepeat = false;
 
 function renderActionGUI(x, y) {
     if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
@@ -241,9 +242,12 @@ register('guiMouseClick', (x, y, mouseButton) => {
             input.setText('');
             input.setCursorPosition(0);
         }
+        originalRepeat = Keyboard.areRepeatEventsEnabled();
+        Keyboard.enableRepeatEvents(true);
         input.setEnabled(true);
         inputEnabled = true;
     } else {
+        Keyboard.enableRepeatEvents(originalRepeat);
         input.setEnabled(false);
         inputEnabled = false;
     }

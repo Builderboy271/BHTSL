@@ -19,6 +19,11 @@ import { compile } from './compiler/compile';
 import Settings from './utils/config';
 import request from 'requestv2';
 
+const FileOutputStream = Java.type("java.io.FileOutputStream")
+const File = Java.type("java.io.File")
+const Channels = Java.type("java.nio.channels.Channels")
+const Long = Java.type("java.lang.Long")
+
 register("command", ...args => {
     let command;
     try {
@@ -44,21 +49,8 @@ register("command", ...args => {
         changelog.forEach(line => {
             ChatLib.chat("&8" + line.trim().slice(0, 1) + "&f" + line.trim().slice(1));
         });
+        ChatLib.chat("");
         checkVersion();
-        return;
-    }
-    if (command === 'latestchangelog') {
-        request("https://api.github.com/repos/Builderboy271/BHTSL/releases/latest").then(response => {
-            const changelog = JSON.parse(response).body.split("\n");
-
-            ChatLib.chat("&3[BHTSL] &7v&f" + JSON.parse(response).tag_name.replace("v", "") + "&e Changes:");
-            ChatLib.chat("");
-            changelog.forEach(line => {
-                ChatLib.chat("&8" + line.trim().slice(0, 1) + "&f" + line.trim().slice(1));
-            });
-        }).catch (error => {
-            ChatLib.chat("&3[BHTSL] &cError fetching latest changelog");
-        });
         return;
     }
     if (command === 'saveitem') {
@@ -154,6 +146,64 @@ register("command", ...args => {
         ChatLib.chat('&6/bhtsl giveitem <filename> &7Gives you an item from your imports');
         ChatLib.chat('&6/bhtsl import <filename> &7Imports given file (ignores default context)');
         ChatLib.chat('&8&m-------------------------------------------------');
+    }
+    if (command === '_latestchangelog') {
+        request("https://api.github.com/repos/Builderboy271/BHTSL/releases/latest").then(response => {
+            const changelog = JSON.parse(response).body.split("\n");
+
+            ChatLib.chat("&3[BHTSL] &7v&f" + JSON.parse(response).tag_name.replace("v", "") + "&e Changes:");
+            ChatLib.chat("");
+            changelog.forEach(line => {
+                ChatLib.chat("&8" + line.trim().slice(0, 1) + "&f" + line.trim().slice(1));
+            });
+            ChatLib.chat("");
+        }).catch (error => {
+            ChatLib.chat("&3[BHTSL] &cError fetching latest changelog");
+        });
+        return;
+    }
+    if (command === '_installlatestupdate') {
+        request("https://api.github.com/repos/Builderboy271/BHTSL/releases/latest").then(response => {
+            const author = JSON.parse(response).author.id;
+            if (author !== 257887200) {
+                ChatLib.chat("&3[BHTSL] &cInvalid author id &e" + author);
+                return;
+            }
+
+            const modulePath = "./config/ChatTriggers/modules/";
+
+            ChatLib.chat("&3[BHTSL] &fDownloading latest update...");
+
+            downloadFile("https://github.com/Builderboy271/BHTSL/releases/latest/download/BHTSL.zip", modulePath + "BHTSL_new/BHTSL.zip");
+            const mainDir = new File(modulePath + "BHTSL");
+
+            ChatLib.chat("&3[BHTSL] &eDeleting old files...");
+
+            if (mainDir.exists() && mainDir.isDirectory()) {
+                mainDir.listFiles().forEach(file => {
+                    const name = file.getName();
+                    if (name !== "imports" && name !== "config.toml") {
+                        if (file.isDirectory()) {
+                            FileLib.deleteDirectory(file.getAbsolutePath());
+                        } else {
+                            file.delete();
+                        }
+                    }
+                });
+            }
+
+            ChatLib.chat("&3[BHTSL] &dInstalling update...");
+
+            FileLib.unzip(modulePath + "BHTSL_new/BHTSL.zip", modulePath);
+            FileLib.deleteDirectory(modulePath + "BHTSL_new");
+
+            ChatLib.chat("&3[BHTSL] &bReloading Chattriggers...");
+
+            ChatLib.command("ct reload", true);
+        }).catch (error => {
+            ChatLib.chat("&3[BHTSL] &cError fetching latest update");
+        });
+        return;
     } else {
         ChatLib.chat('&3[BHTSL] &fUnknown command! Try /bhtsl for help!');
     }
@@ -205,6 +255,19 @@ function getMatchedFileName(path, filePath) {
 
     return null;
 }
+
+function downloadFile(url, destination) {
+    destination = new File(destination);
+    destination.getParentFile().mkdirs();
+    connection = com.chattriggers.ctjs.CTJS.INSTANCE.makeWebRequest(url)
+
+    const is = connection.getInputStream()
+    rbc = Channels.newChannel(is);
+    fos = new FileOutputStream(destination);
+    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    fos.close()
+    is.close()
+};
 
 let load = register("worldLoad", () => {
     if (Settings.loadMessage) ChatLib.chat("&3[BHTSL] &fLoaded successfully! &7v&f" + JSON.parse(FileLib.read("BHTSL", "./metadata.json")).version);

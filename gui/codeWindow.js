@@ -8,6 +8,7 @@ let cursorIndex = 0;
 let fileNameSave = "";
 let startIndex = 0;
 let lineLimit = Math.floor((Renderer.screen.getHeight() - 7) / 20);
+let originalRepeat = false;
 
 register(net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent.Pre, (event) => {
     if (codeIsOpen) cancel(event);
@@ -111,6 +112,9 @@ register("guiKey", (char, keyCode, gui, event) => {
     if (keyCode === 1) {
         FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${fileNameSave}.htsl`, guiText.join("\n"));
         ChatLib.chat(`&3[BHTSL] &fSaved text to ${fileNameSave}.htsl`);
+
+        Keyboard.enableRepeatEvents(originalRepeat);
+
         codeIsOpen = false;
         return;
     }
@@ -173,6 +177,10 @@ export default (fileName) => {
     cursorLine = 0;
     cursorIndex = 0;
     startIndex = 0;
+
+    originalRepeat = Keyboard.areRepeatEventsEnabled()
+    Keyboard.enableRepeatEvents(true);
+
     codeIsOpen = true;
 }
 
