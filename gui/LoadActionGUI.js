@@ -22,6 +22,7 @@ const backDir = new Button(0, 0, 0, 20, '⇪');
 const forwardPage = new Button(0, 0, 15, 20, '⇨');
 const backwardPage = new Button(0, 0, 15, 20, '⇦');
 const toggleShow = new Button(0, 0, 0, 20, '⇩');
+const exportClick = new Button(0, 0, 0, 20, "⎘");
 let show = false;
 
 // load assets
@@ -56,6 +57,7 @@ let CACHE_DURATION = 5000; // Cache for 5 seconds
 let searchTimeout = null;
 let lastSearchPath = null;
 let originalRepeat = false;
+let waitingForExportClick = false;
 
 function renderActionGUI(x, y) {
     if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
@@ -63,6 +65,7 @@ function renderActionGUI(x, y) {
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
     let topBound = input.getY() + 30;
+    let sideXBound = input.getX() + input.getWidth() + 8
     let xBound = input.getX() + input.getWidth();
 
     input.setY(Renderer.screen.getHeight() / 7 - 20);
@@ -78,12 +81,16 @@ function renderActionGUI(x, y) {
 
     try {
         if ((Settings.toggleFileExplorer && show) || !Settings.toggleFileExplorer) {
-            refreshFiles.setWidth(Math.max(10, chestX - xBound - 10));
-            refreshFiles.setX((chestX - xBound) / 2 + xBound - refreshFiles.getWidth() / 2);
+            refreshFiles.setWidth(Math.max(10, chestX - sideXBound - 2));
+            refreshFiles.setX((chestX - sideXBound) / 2 + sideXBound - refreshFiles.getWidth() / 2);
             refreshFiles.setY(input.getY());
-            backDir.setWidth(Math.max(10, chestX - xBound - 10));
-            backDir.setX((chestX - xBound) / 2 + xBound - refreshFiles.getWidth() / 2);
+            backDir.setWidth(Math.max(10, chestX - sideXBound - 2));
+            backDir.setX((chestX - sideXBound) / 2 + sideXBound - refreshFiles.getWidth() / 2);
             backDir.setY(input.getY() - 25);
+
+            exportClick.setWidth(Math.max(10, chestX - sideXBound - 2));
+            exportClick.setX((chestX - sideXBound) / 2 + sideXBound - refreshFiles.getWidth() / 2);
+            exportClick.setY(input.getY() + 25);
 
             forwardPage.setY(Renderer.screen.getHeight() / 7 * 6 + 2);
             forwardPage.setX(input.getWidth() + input.getX() - 5);
@@ -196,6 +203,11 @@ function renderActionGUI(x, y) {
             if ((page + 1) * linesPerPage < filteredFiles.length) forwardPage.render(x, y);
             if (page > 0) backwardPage.render(x, y);
             refreshFiles.render(x, y);
+
+            exportClick.render(x, y);
+            if (waitingForExportClick) {
+                Renderer.drawRect(Renderer.color(0, 255, 0, 100), exportClick.getX(), exportClick.getY(), exportClick.getWidth(), exportClick.getHeight());
+            }
         }
     } catch (e) {console.log(e)}
 
@@ -231,12 +243,37 @@ register('guiKey', (char, keyCode, gui, event) => {
 let lastClick = 0;
 let inputEnabled = false;
 
-register('guiMouseClick', (x, y, mouseButton) => {
+register('guiMouseClick', (x, y, mouseButton, gui, event) => {
     if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
     if (Settings.debounce > Date.now() - lastClick) return;
-    lastClick = Date.now();
 
+    lastClick = Date.now();
     input.mcObject.func_146192_a(x, y, mouseButton);
+    
+    if (isButtonHovered(exportClick, x, y)) {
+        waitingForExportClick = !waitingForExportClick; // Toggle mode
+        World.playSound('random.click', 0.5, 1);
+        ChatLib.chat(waitingForExportClick ? "&3[BHTSL] &eClick an item in your inventory to export it!" : "&3[BHTSL] &cExport cancelled.");
+        return;
+    }
+
+    if (waitingForExportClick) {
+        const slot = Client.currentGui.getSlotUnderMouse();
+        if (slot && slot.getItem()) {
+            let item = slot.getItem().getNBT().toString().replace(/["]/g, '\\$&');
+            let fileName = (input.getText() === "Enter File Name" || input.getText() === "") ? "exported_item" : input.getText();
+
+            FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${subDir + fileName}.json`, `{"item": "${item}"}`, true);
+            
+            waitingForExportClick = false;
+            readFiles(true);
+            cancel(event);
+
+            ChatLib.chat("&3[BHTSL] &aExported item to " + fileName + ".json!");
+            return;
+        }
+    }
+
     if (x > input.getX() && x < input.getX() + input.getWidth() && y > input.getY() && y < input.getY() + input.getHeight()) {
         if (input.getText() === 'Enter File Name') {
             input.setText('');
@@ -349,6 +386,13 @@ register('guiMouseClick', (x, y, mouseButton) => {
                 }
             }
         }
+    }
+});
+
+register('guiClosed', () => {
+    if (waitingForExportClick){
+        waitingForExportClick = false;
+        ChatLib.chat("&3[BHTSL] &cExport cancelled.");
     }
 });
 
