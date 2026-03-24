@@ -282,12 +282,13 @@ function getItemFromAction(callback) {
     itemCallback = callback;
 }
 
-register("packetReceived", (packet) => {
+register("packetReceived", (packet, event) => {
     if (!Navigator.isWorking) return;
     if (!Navigator.waitingForItem) return;
     if (!packet.func_149174_e()) return;
     itemCallback(`{"item": "${new Item(packet.func_149174_e()).getNBT().toString().replace(/["]/g, '\\$&')}"}`);
     Navigator.waitingForItem = false;
+    cancel(event);
     click(31);
 }).setFilteredClass(S2FPacketSetSlot);
 
