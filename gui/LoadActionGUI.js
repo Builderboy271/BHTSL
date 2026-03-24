@@ -1,6 +1,7 @@
 import { Input, Button } from './GuiBuilder';
-import { compile, isImporting } from '../compiler/compile';
+import { compile } from '../compiler/compile';
 import exportAction from '../compiler/exportAction';
+import { isWorking } from '../gui/Queue';
 import Settings from '../utils/config';
 import getItemFromNBT from '../utils/getItemFromNBT';
 import loadItemstack from '../utils/loadItemstack';
@@ -60,7 +61,7 @@ let originalRepeat = false;
 let waitingForExportClick = false;
 
 function renderActionGUI(x, y) {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isCodeOpen()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
@@ -244,7 +245,7 @@ let lastClick = 0;
 let inputEnabled = false;
 
 register('guiMouseClick', (x, y, mouseButton, gui, event) => {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isImporting() || isCodeOpen()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isCodeOpen()) return;
     if (Settings.debounce > Date.now() - lastClick) return;
 
     lastClick = Date.now();
