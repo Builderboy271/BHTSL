@@ -4,15 +4,6 @@ import conditions from '../actions/conditions';
 import convertSound from '../utils/convertSound';
 import actionLimits from '../utils/actionLimits';
 
-export function working() {
-    return isWorking();
-};
-
-/**
- * Loads in and automatically imports action data
- * @param {*} script JSON Object containing action data to import
- * @param {*} deleteExisting Whether or not to have the macro delete existing items before ready
- */
 export function loadAction(script, deleteExisting) {
     if (isWorking()) return false;
     let limits = actionLimits(script);
