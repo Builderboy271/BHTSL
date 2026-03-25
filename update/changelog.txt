@@ -1,7 +1,7 @@
 Patch v2.0.3:
 
-- Added the ability to install BHTSL updates directly from minecraft in 1 click
-- Added a Github version compare button to the updator
+- Added the ability to install BHTSL updates directly from in-game in 1 click
+- Added a Github version compare button to the updater
 - Added "/bhtsl installupdate"
 - Added new export item button to the load action GUI
 - Added naming exported item files by the item's name, instead of by the script's name (option)
