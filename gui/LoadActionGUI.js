@@ -262,15 +262,27 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
         const slot = Client.currentGui.getSlotUnderMouse();
         if (slot && slot.getItem()) {
             let item = slot.getItem().getNBT().toString().replace(/["]/g, '\\$&');
-            let fileName = (input.getText() === "Enter File Name" || input.getText() === "") ? "exported_item" : input.getText();
-
-            FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${subDir + fileName}.json`, `{"item": "${item}"}`, true);
             
-            waitingForExportClick = false;
+            let baseDir = `./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${subDir}`;
+            let originalName = (input.getText() === "Enter File Name" || input.getText() === "") ? "exported_item" : input.getText();
+            
+            let finalName = originalName;
+            let counter = 1;
+
+            while (new java.io.File(`${baseDir}${finalName}.json`).exists()) {
+                finalName = `${originalName}_${counter}`;
+                counter++;
+            }
+
+            FileLib.write(`${baseDir}${finalName}.json`, `{"item": "${item}"}`, true);
+            
+            if (!Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && !Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
+                waitingForExportClick = false;
+            }
             readFiles(true);
             cancel(event);
 
-            ChatLib.chat("&3[BHTSL] &aExported item to " + fileName + ".json!");
+            ChatLib.chat("&3[BHTSL] &aExported item to " + finalName + ".json!");
             return;
         }
     }
