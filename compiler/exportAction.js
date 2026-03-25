@@ -26,7 +26,19 @@ export default (fileName) => {
             }], fileName);
             FileLib.write("BHTSL", `imports/${fileName}.htsl`, script.script, true);
             for (let i = 0; i < script.items.length; i++) {
-                FileLib.write("BHTSL", `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}${script.items[i].name}.json`, script.items[i].string, true);
+                let baseDir = `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}`;
+                let originalName = script.items[i].name;
+                let extension = ".json";
+                
+                let finalName = originalName;
+                let counter = 1;
+
+                while (FileLib.exists("BHTSL", `${baseDir}${finalName}${extension}`)) {
+                    finalName = `${originalName}_${counter}`;
+                    counter++;
+                }
+
+                FileLib.write("BHTSL", `${baseDir}${finalName}${extension}`, script.items[i].string, true);
             }
         }
     });

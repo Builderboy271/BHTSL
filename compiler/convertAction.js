@@ -3,6 +3,7 @@ import Settings from "../utils/config";
 import syntaxs from "../actions/syntax";
 import menus from "../actions/menus";
 import _conditions from "../actions/conditions";
+import getItemFromNBT from '../utils/getItemFromNBT';
 
 const housingEditor = 'https://api.housingeditor.com'
 
@@ -145,8 +146,16 @@ function convertComponent(obj, syntax, menu, condition) {
             action = action.replace(property, obj[propertyName]);
             return;
         } else if (menu[propertyName].type == "item" && obj[propertyName] != null) {
-            items.push({ name: `${Settings.itemPrefix.length > 1 ? "/" + Settings.itemPrefix + "/" : ""}${exportName}_item${items.length + 1}`, string: obj[propertyName] });
-            action = action.replace(property, `"${exportName}_item${items.length}"`);
+            let fileName = "unnamed_item";
+            
+            if (Settings.useItemNameForExportedItems){
+                fileName = getItemFromNBT(JSON.parse(obj[propertyName]).item).getName().replace(/§./g, '').replace(/[/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_').trim() || "unnamed_item"
+            } else {
+                fileName = `${exportName}_${items.length + 1}`;
+            }
+
+            items.push({ name: `${Settings.itemPrefix.length > 1 ? "/" + Settings.itemPrefix + "/" : ""}${fileName}`, string: obj[propertyName] });
+            action = action.replace(property, fileName);
             return;
         } else if (obj[propertyName] != null) {
             obj[propertyName] = String(obj[propertyName]).replaceAll(/([^$])("|\\)([^^])/g, "$1\\$2$3");
