@@ -1,12 +1,10 @@
-Patch v2.0.2:
+Patch v2.0.3:
 
-- Added edit button to action GUI files (option)
-- Added version check every 30 minutes (option)
-- Added version check to "/bhtsl version" and "/bhtsl changelog"
-- Added pulling update information from the latest Github release instead of the repository
-- Replaced Axios dependency with Requestv2
-- Reworked code window
-- Renamed "/bhtsl gui" to "/bhtsl edit"
-- Fixed action GUI button hitboxes
-- Removed bugged search highlighting
-- Removed unused save file option
+- Added the ability to install BHTSL updates directly from minecraft in 1 click
+- Added a Github version compare button to the updator
+- Added "/bhtsl installupdate"
+- Added new export item button to the load action GUI
+- Added naming exported item files by the item's name, instead of by the script's name (option)
+- Items created while exporting item actions are now deleted automatically
+- Fixed line wrapping in the code window
+- Fixed absence of quotes in sound and chat actions
