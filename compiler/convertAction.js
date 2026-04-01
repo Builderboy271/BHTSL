@@ -147,9 +147,9 @@ function convertComponent(obj, syntax, menu, condition) {
             return;
         } else if (menu[propertyName].type == "item" && obj[propertyName] != null) {
             let fileName = "unnamed_item";
-            
+
             if (Settings.useItemNameForExportedItems){
-                fileName = getItemFromNBT(JSON.parse(obj[propertyName]).item).getName().replace(/§./g, '').replace(/[/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_').trim() || "unnamed_item"
+                fileName = getItemFromNBT(JSON.parse(obj[propertyName]).item).getName().replace(/§./g, '').replace(/[/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_').trim() || "unnamed_item";
             } else {
                 fileName = `${exportName}_${items.length + 1}`;
             }
