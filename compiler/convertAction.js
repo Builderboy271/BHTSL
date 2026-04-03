@@ -1,4 +1,4 @@
-import request from "requestv2";
+import request from "requestV2";
 import Settings from "../utils/config";
 import syntaxs from "../actions/syntax";
 import menus from "../actions/menus";

@@ -17,7 +17,7 @@ import loadItemstack from './utils/loadItemstack';
 import { loadAction } from './compiler/loadAction';
 import { compile } from './compiler/compile';
 import Settings from './utils/config';
-import request from 'requestv2';
+import request from 'requestV2';
 
 const FileOutputStream = Java.type("java.io.FileOutputStream")
 const File = Java.type("java.io.File")

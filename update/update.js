@@ -1,4 +1,4 @@
-import request from "requestv2";
+import request from "requestV2";
 import Settings from "../utils/config";
 
 let newVersionShown = false;
