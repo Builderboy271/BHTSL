@@ -4,5 +4,5 @@
   "description": "HTSL but with some improvements and changes by Builderboy271!",
   "version": "2.0.4",
   "entry": "index.js",
-  "requires": ["requestv2", "Vigilance"]
+  "requires": ["requestV2", "Vigilance"]
 }
