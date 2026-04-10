@@ -213,10 +213,14 @@ register("command", ...args => {
 
 register("packetReceived", (packet, event) => {
     if (Settings.noCursorWipe) {
-        if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d){
-            if (packet.class.getName() == "net.minecraft.network.play.server.S2FPacketSetSlot") {
-                if (packet.func_149174_e() == null && packet.func_149173_d() == -1 && packet.func_149175_c() == -1) {
-                    cancel(event);
+        if (Player.asPlayerMP() !== null) {
+            if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d){
+                if (Player.getContainer().getClassName() == "ContainerCreative") {
+                    if (packet.class.getName() == "net.minecraft.network.play.server.S2FPacketSetSlot") {
+                        if (packet.func_149174_e() == null && packet.func_149173_d() == -1 && packet.func_149175_c() == -1) {
+                            cancel(event);
+                        }
+                    }
                 }
             }
         }
