@@ -12,8 +12,11 @@ const File = Java.type("java.io.File");
 
 const guiTopField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_147009_r');
 const xSizeField = net.minecraft.client.gui.inventory.GuiContainer.class.getDeclaredField('field_146999_f');
+const displayTooltip = net.minecraft.client.gui.GuiScreen.class.getDeclaredMethod("func_146285_a", [net.minecraft.item.ItemStack, java.lang.Integer.TYPE, java.lang.Integer.TYPE]);
+
 guiTopField.setAccessible(true);
 xSizeField.setAccessible(true);
+displayTooltip.setAccessible(true);
 
 // init buttons
 const importButton = new Button(0, 0, 0, 20, 'Import HTSL');
@@ -59,8 +62,9 @@ let searchTimeout = null;
 let lastSearchPath = null;
 let originalRepeat = false;
 let waitingForExportClick = false;
+let tooltipItemStack = null;
 
-function renderActionGUI(x, y) {
+function renderActionGUI(x, y, gui) {
     if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isCodeOpen()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
@@ -124,7 +128,7 @@ function renderActionGUI(x, y) {
                         let isHoveringPen = (x < xBound - 24 && x > xBound - 40);
                         Renderer.drawImage(isHoveringPen ? hoverEditPen : editPen, xBound - 40, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
-                    if (currentFile.endsWith(".htsl") || currentFile.endsWith(".json")) {
+                    if (currentFile.endsWith(".htsl") || currentFile.endsWith(".json") || currentFile.endsWith("/")) {
                         let isHoveringTrash = (x < xBound - 4 && x > xBound - 20);
                         Renderer.drawImage(isHoveringTrash ? openTrashBin : trashBin, xBound - 20, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
@@ -150,8 +154,13 @@ function renderActionGUI(x, y) {
                 let drawY = topBound + (isHoveringRow ? 3 : (Settings.altIcons ? 6 : 5)) + 20 * (i - page * linesPerPage);
                 let size = isHoveringRow ? 20 : (Settings.altIcons ? 14 : 16);
 
-                if (item) item.draw(input.getX(), topBound + 4 + 20 * (i - page * linesPerPage), 1, 200);
-                else Renderer.drawImage(type, drawX, drawY, size, size);
+                if (item) {
+                    item.draw(input.getX(), topBound + 4 + 20 * (i - page * linesPerPage), 1, 200);
+                    // Show lore tooltip when hovering over item icon
+                    if ((x < input.getX() + 20 && x > input.getX() && y < topBound + 4 + 20 + 20 * (i - page * linesPerPage) && y > topBound + 4 + 20 * (i - page * linesPerPage)) && currentFile.endsWith(".json")) {
+                        tooltipItemStack = item.itemStack;
+                    }
+                } else Renderer.drawImage(type, drawX, drawY, size, size);
 
 				let displayName = isGlobalSearching ? currentFile : currentFile.replace(subDir, "");
 				let maxTextWidth = input.getWidth() - 35;
@@ -223,12 +232,17 @@ function renderActionGUI(x, y) {
     exportButton.render(x, y);
 }
 
-register('guiRender', (x, y) => {
-	if (Client.currentGui.getClassName() !== "GuiContainerCreative" || !Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y);
+register('guiRender', (x, y, gui) => {
+	if (Client.currentGui.getClassName() !== "GuiContainerCreative" || !Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y, gui);
 });
 
-register('postGuiRender', (x, y) => {
-	if (Client.currentGui.getClassName() === "GuiContainerCreative" && Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y);
+register('postGuiRender', (x, y, gui) => {
+    if (Client.currentGui.getClassName() === "GuiContainerCreative" && Settings.renderGUIAbovePotionEffects) renderActionGUI(x, y, gui);
+
+    if (tooltipItemStack !== null){
+        displayTooltip.invoke(gui, tooltipItemStack, new java.lang.Integer(Client.getMouseX()), new java.lang.Integer(Client.getMouseY()));
+        tooltipItemStack = null;
+    }
 });
 
 register('guiKey', (char, keyCode, gui, event) => {
@@ -376,10 +390,21 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
                 }
                 return;
             }
-            if (selected.includes(".") && x < input.getX() + input.getWidth() - 4 && x > input.getX() + input.getWidth() - 20) {
+            if ((selected.includes(".") || selected.endsWith("/")) && x < input.getX() + input.getWidth() - 4 && x > input.getX() + input.getWidth() - 20) {
                 World.playSound('random.fizz', 0.1, 1);
 				World.playSound('liquid.lavapop', 0.5, 0.5);
-                FileLib.delete("BHTSL", `imports/${selected}`);
+                
+                if (selected.endsWith("/")) {
+                    // Delete directory and all contents
+                    let dirPath = `./config/ChatTriggers/modules/BHTSL/imports/${selected}`;
+                    let dirFile = new File(dirPath);
+                    if (dirFile.exists() && dirFile.isDirectory()) {
+                        deleteDirectory(dirFile);
+                    }
+                } else {
+                    // Delete file
+                    FileLib.delete("BHTSL", `imports/${selected}`);
+                }
                 readFiles(true);
                 return;
             }
@@ -427,6 +452,18 @@ function handleInputClick(button, action, x, y) {
         input.setCursorPosition(0);
         input.setIsFocused(false);
     }
+}
+
+function deleteDirectory(file) {
+    if (file.isDirectory()) {
+        let children = file.listFiles();
+        if (children) {
+            for (let child of children) {
+                deleteDirectory(child);
+            }
+        }
+    }
+    file.delete();
 }
 
 function isButtonHovered(button, x, y) {
