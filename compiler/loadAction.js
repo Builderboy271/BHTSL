@@ -24,7 +24,7 @@ export function loadAction(script, deleteExisting) {
                     addOperation({ type: 'option', option: script[container].contextTarget.name });
                     break;
                 case "COMMAND":
-                    addOperation({ type: 'chat', text: `/customcommands edit ${script[container].contextTarget.name}`, func: "/customcommands create " + script[container].contextTarget.name, command: true });
+                    addOperation({ type: 'chat', text: `/customcommands actions ${script[container].contextTarget.name}`, func: "/customcommands create " + script[container].contextTarget.name, command: true });
                     break;
                 case "NPC":
                     // Original would have optimized to not require the player to go to the NPC, but because of protections on the Housing Menu HTSL cannot use this.
