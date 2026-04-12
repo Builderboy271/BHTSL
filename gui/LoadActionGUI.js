@@ -157,7 +157,7 @@ function renderActionGUI(x, y, gui) {
                 if (item) {
                     item.draw(input.getX(), topBound + 4 + 20 * (i - page * linesPerPage), 1, 200);
                     // Show lore tooltip when hovering over item icon
-                    if ((x < input.getX() + 20 && x > input.getX() && y < topBound + 4 + 20 + 20 * (i - page * linesPerPage) && y > topBound + 4 + 20 * (i - page * linesPerPage)) && currentFile.endsWith(".json")) {
+                    if ((x < input.getX() + 16 && x > input.getX() && y < topBound + 4 + 16 + 20 * (i - page * linesPerPage) && y > topBound + 4 + 20 * (i - page * linesPerPage)) && currentFile.endsWith(".json")) {
                         tooltipItemStack = item.itemStack;
                     }
                 } else Renderer.drawImage(type, drawX, drawY, size, size);
