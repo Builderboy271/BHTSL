@@ -300,7 +300,7 @@ export default (fileName) => {
     cursorIndex = 0;
     startIndex = 0;
 
-    originalRepeat = Keyboard.areRepeatEventsEnabled()
+    originalRepeat = Keyboard.areRepeatEventsEnabled();
     Keyboard.enableRepeatEvents(true);
 
     codeIsOpen = true;

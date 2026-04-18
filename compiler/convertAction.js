@@ -28,8 +28,8 @@ export function convertHE(actionId, filename) {
             ChatLib.chat('&cError: ' + json.message);
         } else {
             ChatLib.chat('&cError: ' + response.statusText);
-        };
-    })
+        }
+    });
 }
 
 

@@ -55,7 +55,7 @@ register("postGuiRender", () => {
 register("soundPlay", (useless, useless2, useless3, useless4, useless5, event) => {
   if (!Navigator.isWorking) return;
   if (!Settings.cancelSounds) return;
-  cancel(event)
+  cancel(event);
 });
 
 register("guiOpened", (event) => {

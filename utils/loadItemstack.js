@@ -9,4 +9,4 @@ export default (itemStack, slot) => {
 			itemStack // item to get as a minecraft item stack object
 		)
 	);
-}
+};

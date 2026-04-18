@@ -6,7 +6,7 @@ export default (itemData) => {
 	if (itemData.name) customItem.setName(itemData.name);
 	if (itemData.meta) customItem.itemStack.func_77964_b(itemData.meta);
 	if (itemData.lore) customItem.setLore(itemData.lore);
-	if (itemData.Damage) customItem.setDamage(itemData.damage);
+	if (itemData.damage) customItem.setDamage(itemData.damage);
 	if (itemData.unbreakable || itemData.ench || itemData.hideFlags) {
 		const nbt = customItem.itemStack.func_77978_p();
 

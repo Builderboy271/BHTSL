@@ -11,7 +11,7 @@ let currentGuiContext = null;
 register("tick", () => {
     if (queue.length > 0) timeWithoutOperation++;
     if (
-        (timeWithoutOperation > Settings.guiTimeout) & (queue.length > 0) &&
+        (timeWithoutOperation > Settings.guiTimeout) && (queue.length > 0) &&
         !Settings.useSafeMode && !Navigator.goto
     ) {
         fails.push(`&cOperation timed out. &f(too long without GUI click)`);

@@ -10,7 +10,7 @@ export const checkVersion = () => {
         const latestVersion = JSON.parse(response).tag_name.replace("v", "");
         const latestSplit = latestVersion.split(".");
 
-        for (var i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
             if (Number(currentSplit[i]) < Number(latestSplit[i])) {
                 newVersionShown = true;
 

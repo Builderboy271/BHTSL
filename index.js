@@ -19,10 +19,10 @@ import { compile } from './compiler/compile';
 import Settings from './utils/config';
 import request from 'requestV2';
 
-const FileOutputStream = Java.type("java.io.FileOutputStream")
-const File = Java.type("java.io.File")
-const Channels = Java.type("java.nio.channels.Channels")
-const Long = Java.type("java.lang.Long")
+const FileOutputStream = Java.type("java.io.FileOutputStream");
+const File = Java.type("java.io.File");
+const Channels = Java.type("java.nio.channels.Channels");
+const Long = Java.type("java.lang.Long");
 
 register("command", ...args => {
     let command;
@@ -271,14 +271,14 @@ function getMatchedFileName(path, filePath) {
 function downloadFile(url, destination) {
     destination = new File(destination);
     destination.getParentFile().mkdirs();
-    connection = com.chattriggers.ctjs.CTJS.INSTANCE.makeWebRequest(url)
+    connection = com.chattriggers.ctjs.CTJS.INSTANCE.makeWebRequest(url);
 
-    const is = connection.getInputStream()
+    const is = connection.getInputStream();
     rbc = Channels.newChannel(is);
     fos = new FileOutputStream(destination);
     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-    fos.close()
-    is.close()
+    fos.close();
+    is.close();
 };
 
 let load = register("worldLoad", () => {

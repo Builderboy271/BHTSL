@@ -1,4 +1,4 @@
-import { addOperation, forceOperation } from "../gui/Queue"
+import { addOperation, forceOperation } from "../gui/Queue";
 import { convertJSON } from "./convertAction";
 import menus from "../actions/menus";
 import conditions from "../actions/conditions";
