@@ -97,7 +97,7 @@ function processPage(items, actionList, menuList, condition) {
                     actionobj["inverted"] = true;
                     continue;
                 }
-                let match = line.match(/^§5§o§7([^:]*): ?§?f?(.*)?$/);
+                let match = line.match(/^§5§o§7(?!§7§o)([^:]*): ?§?f?(.*)?$/);
                 if (!match) continue;
                 let [property, value] = [match[1].toLowerCase().replaceAll(" ", "_"), match[2]?.replaceAll("§", "&")];
                 if (property.endsWith("_name")) continue;
