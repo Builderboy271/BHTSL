@@ -113,15 +113,15 @@ function processPage(items, actionList, menuList, condition) {
                     }
                     forceOperation({
                         type: "export", func: (settingItems) => {
-			    let slot = menu[property].slot;
-			    if (condition) {
-				// Account for "Inverted" property offsetting everything
-				slot += 1;
-			    }
-			    if (actionkey === "CHANGE_VARIABLE" && actionobj["holder"] !== "Team" && slot > 11) {
-				// Account for "Team" property not appearing when holder is not Team
-				slot -= 1;
-			    }
+                            let slot = menu[property].slot;
+                            if (condition) {
+                                // Account for "Inverted" property offsetting everything
+                                slot += 1;
+                            }
+                            if (actionkey === "CHANGE_VARIABLE" && actionobj["holder"] !== "Team" && slot > 11) {
+                                // Account for "Team" property not appearing when holder is not Team
+                                slot -= 1;
+                            }
 			    
                             let itemLore = Object.values(settingItems[slot].getLore());
                             let currentValueIndex = itemLore.indexOf("§5§o§7Current Value:");
