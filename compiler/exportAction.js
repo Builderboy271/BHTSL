@@ -113,7 +113,17 @@ function processPage(items, actionList, menuList, condition) {
                     }
                     forceOperation({
                         type: "export", func: (settingItems) => {
-                            let itemLore = Object.values(settingItems[menu[property].slot].getLore());
+                            let slot = menu[property].slot;
+                            if (condition) {
+                                // Account for "Inverted" property offsetting everything
+                                slot += 1;
+                            }
+                            if (actionkey === "CHANGE_VARIABLE" && actionobj["holder"] !== "Team" && slot > 11) {
+                                // Account for "Team" property not appearing when holder is not Team
+                                slot -= 1;
+                            }
+			    
+                            let itemLore = Object.values(settingItems[slot].getLore());
                             let currentValueIndex = itemLore.indexOf("§5§o§7Current Value:");
                             let currentValue = itemLore.splice(currentValueIndex + 1, itemLore.lastIndexOf("§5§o") - currentValueIndex - 1)
                                 .map(n => n.substring(6).replaceAll("§", "&"))
