@@ -34,5 +34,5 @@ export const checkVersion = () => {
 };
 
 register("step", () => {
-    if (Settings.periodicVersionCheck && !newVersionShown) checkVersion();
+    if (!Settings.disableBHTSLFeatures && Settings.periodicVersionCheck && !newVersionShown) checkVersion();
 }).setDelay(1800);

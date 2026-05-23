@@ -65,7 +65,7 @@ let waitingForExportClick = false;
 let tooltipItemStack = null;
 
 function renderActionGUI(x, y, gui) {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isCodeOpen()) return;
+    if (Settings.disableBHTSLFeatures || !Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isCodeOpen()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
@@ -570,7 +570,7 @@ function isInActionGui() {
 }
 
 register('guiOpened', () => {
-    if (Settings.refreshFileExplorerAutomatically) readFiles(true);
+    if (!Settings.disableBHTSLFeatures && Settings.refreshFileExplorerAutomatically) readFiles(true);
 });
 
 export function getSubDir() { return subDir; }

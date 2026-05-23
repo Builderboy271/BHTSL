@@ -83,6 +83,14 @@ class Settings {
 	})
 	noCursorWipe = false;
 
+	@SwitchProperty({
+		name: "Disable BHTSL Features",
+		description: 'Disables all BHTSL features. &cWarning: this will make the config menu inaccessible, and functionality can only be restored by running the command "/bhtsl enable"',
+		category: "General",
+		subcategory: "General",
+	})
+	disableBHTSLFeatures = false;
+
 	// Importing/Exporting 
 
 	@TextProperty({
