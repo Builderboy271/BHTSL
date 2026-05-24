@@ -1,8 +1,8 @@
-Patch v2.0.5:
+Patch v2.0.6:
 
-- Added an option to prevent Hypixel from deleting items held in the inventory (option)
-- Added item hover tooltip to item files in the load action GUI
-- Added trash option to directories in the load action GUI
-- Fixed timeout due to immediate item deletion
-- Fixed item export button behavior when a directory but no file name is given
-- Fixed requestV2 import on Linux
+- Added an option to disable all bhtsl features until re-enabled (option)
+- Added /bhtsl disable and /bhtsl enable
+- Fixed using goto with commands
+- Fixed item icon hover bounds
+- Fixed exporting some truncated values
+- Removed guide command
