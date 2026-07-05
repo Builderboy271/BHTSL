@@ -27,9 +27,7 @@ register("tick", () => {
     if (Navigator.isSelecting) {
         const attemptResult = Navigator.selectOption(Navigator.optionBeingSelected);
         if (attemptResult === false)
-            fails.push(
-                `&cCouldn't find option &f${Navigator.optionBeingSelected} &cin &f${currentGuiContext}&c.`
-            );
+            fails.push(`&cCouldn't find option &f${Navigator.optionBeingSelected} &cin &f${currentGuiContext}&c.`);
         return;
     }
     if (Navigator.isDeleting && Navigator.isReady) {

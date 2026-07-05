@@ -120,10 +120,15 @@ function convertComponent(obj, syntax, menu, condition) {
         } else if (menu[propertyName].type == "item" && obj[propertyName] != null) {
             let fileName = "unnamed_item";
 
-            if (Settings.useItemNameForExportedItems) {
-                fileName = getItemFromNBT(JSON.parse(obj[propertyName]).item).getName().replace(/§./g, '').replace(/[/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_').trim() || "unnamed_item";
-            } else {
-                fileName = `${exportName}_${items.length + 1}`;
+            try {
+                if (Settings.useItemNameForExportedItems) {
+                    fileName = getItemFromNBT(JSON.parse(obj[propertyName]).item).getName().replace(/§./g, '').replace(/[/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_').trim() || "unnamed_item";
+                } else {
+                    fileName = `${exportName}_${items.length + 1}`;
+                }
+            } catch (e) {
+                ChatLib.chat(`&3[BHTSL] &cFailed to parse item for export. Using default name "invalid_item"`);
+                fileName = "invalid_item";
             }
 
             items.push({ name: `${Settings.itemPrefix.length > 1 ? "/" + Settings.itemPrefix + "/" : ""}${fileName}`, string: obj[propertyName] });

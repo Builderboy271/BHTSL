@@ -326,10 +326,8 @@ function exportFunctionsSequentially(functionNames) {
         index++;
         setExportChainStatus(true, index, functionNames.length);
 
-        // open the function in-editor
         ChatLib.command(`function edit ${funcName}`);
 
-        // wait for the action GUI to open (so exportAction can read the container)
         const waitForGui = (attempts = 0) => {
             if (isExportChainCanceled()) {
                 ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
@@ -340,11 +338,8 @@ function exportFunctionsSequentially(functionNames) {
             const container = Player.getContainer();
             const hasActionGui = container && container.getName && container.getName().match(/Edit Actions|Actions: /);
             if (hasActionGui) {
-                // build file name using saveDirectory setting and subdir
                 const base = (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_functions/";
-                // sanitize filename: convert any slashes to underscores and sanitize
                 const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
-                // replace slashes/backslashes with underscores so directories are not created
                 let namePart = funcName.replace(/[\\/]+/g, "_");
                 namePart = sanitize(namePart);
                 const fileName = base + namePart;
@@ -355,7 +350,6 @@ function exportFunctionsSequentially(functionNames) {
                     ChatLib.chat(`&3[BHTSL] &cFailed to export ${funcName}: ${e}`);
                 }
 
-                // wait for export to finish
                 const waitForFinish = () => {
                     if (isExportChainCanceled()) {
                         ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
@@ -374,7 +368,6 @@ function exportFunctionsSequentially(functionNames) {
                 return;
             }
 
-            // timeout after a reasonable number of attempts (~5s)
             if (attempts > 100) {
                 ChatLib.chat(`&3[BHTSL] &cTimed out opening function ${funcName}. Skipping.`);
                 setTimeout(runNext, 0);
@@ -386,7 +379,6 @@ function exportFunctionsSequentially(functionNames) {
         waitForGui();
     };
 
-    // start immediately
     runNext();
 }
 
@@ -411,10 +403,8 @@ function exportCommandsSequentially(commandNames) {
         index++;
         setExportChainStatus(true, index, commandNames.length);
 
-        // open the command in-editor
         ChatLib.command(`command actions ${cmdName}`);
 
-        // wait for the action GUI to open (so exportAction can read the container)
         const waitForGui = (attempts = 0) => {
             if (isExportChainCanceled()) {
                 ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
@@ -425,11 +415,8 @@ function exportCommandsSequentially(commandNames) {
             const container = Player.getContainer();
             const hasActionGui = container && container.getName && container.getName().match(/Edit Actions|Actions: /);
             if (hasActionGui) {
-                // build file name using saveDirectory setting and subdir
                 const base = (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_commands/";
-                // sanitize filename: convert any slashes to underscores and sanitize
                 const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
-                // replace slashes/backslashes with underscores so directories are not created
                 let namePart = cmdName.replace(/[\\/]+/g, "_");
                 namePart = sanitize(namePart);
                 const fileName = base + namePart;
@@ -440,7 +427,6 @@ function exportCommandsSequentially(commandNames) {
                     ChatLib.chat(`&3[BHTSL] &cFailed to export ${cmdName}: ${e}`);
                 }
 
-                // wait for export to finish
                 const waitForFinish = () => {
                     if (isExportChainCanceled()) {
                         ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
@@ -459,7 +445,6 @@ function exportCommandsSequentially(commandNames) {
                 return;
             }
 
-            // timeout after a reasonable number of attempts (~5s)
             if (attempts > 100) {
                 ChatLib.chat(`&3[BHTSL] &cTimed out opening command ${cmdName}. Skipping.`);
                 setTimeout(runNext, 0);
