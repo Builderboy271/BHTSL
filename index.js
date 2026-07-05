@@ -7,7 +7,6 @@ if (FileLib.exists("HTSL", "./metadata.json")) {
 import { getSubDir } from './gui/LoadActionGUI';
 import Config from "./utils/config";
 import codeWindow from './gui/codeWindow';
-import './gui/holoCopy';
 import { convertHE } from './compiler/convertAction';
 import { preProcess } from './compiler/compile';
 import { addOperation } from './gui/Queue';
