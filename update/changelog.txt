@@ -1,8 +1,9 @@
-Patch v2.0.6:
+Patch v2.0.7:
 
-- Added an option to disable all bhtsl features until re-enabled (option)
-- Added /bhtsl disable and /bhtsl enable
-- Fixed using goto with commands
-- Fixed item icon hover bounds
-- Fixed exporting some truncated values
-- Removed guide command
+- Added /bhtsl exportallfunctions and /bhtsl exportallcommands
+- Added an option to write goto headers at the top of .htsl files exported with /bhtsl exportallfunctions or /bhtsl exportallcommands (option)
+- Fixed some keywords not being exported in quotes
+- Fixed items not being deleted from the inventory fast enough when exporting
+- Fixed references to .htsl files in chat sometimes being interpreted as hyperlinks by Minecraft
+- Fixed help menu formatting
+- Removed support for Housing Editor actions
