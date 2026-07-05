@@ -237,6 +237,7 @@ function input(text) {
 
 function inputChat(text, func, command) {
   if (text.startsWith("/") && !command) text = "&r" + text;
+  if (text === "") text = '""';
   if (func) {
     Navigator.func = func;
   }
@@ -289,7 +290,7 @@ register("packetReceived", (packet, event) => {
   itemCallback(`{"item": "${new Item(packet.func_149174_e()).getNBT().toString().replace(/["]/g, '\\$&')}"}`);
   Navigator.waitingForItem = false;
   new Thread(() => {
-    Thread.sleep(1000);
+    Thread.sleep(100);
     loadItem(null, packet.func_149173_d() - 27); //27 to offset for the slotid
   }).start();
   click(31);

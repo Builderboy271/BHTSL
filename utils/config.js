@@ -85,7 +85,7 @@ class Settings {
 
 	@SwitchProperty({
 		name: "Disable BHTSL Features",
-		description: 'Disables all BHTSL features. &cWarning: this will make the config menu inaccessible, and functionality can only be restored by running the command "/bhtsl enable"',
+		description: 'Disables all BHTSL features\n\n&cWarning: this will make the config menu inaccessible, and functionality can only be restored by running the command "/bhtsl enable"',
 		category: "General",
 		subcategory: "General",
 	})
@@ -108,6 +108,14 @@ class Settings {
 		subcategory: "Importing/Exporting"
 	})
 	useItemNameForExportedItems = false;
+
+	@SwitchProperty({
+		name: "Add goto header to exportall files",
+		description: "Prepends a goto line to .htsl files exported with /exportallfunctions and /exportallcommands so they import into the correct action container.",
+		category: "Importing/Exporting",
+		subcategory: "Importing/Exporting"
+	})
+	exportAllAddGotoHeader = false;
 
 	@SwitchProperty({
 		name: "Safe Mode",

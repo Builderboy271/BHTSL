@@ -228,7 +228,7 @@ register("guiKey", (char, keyCode, gui, event) => {
     // Esc key
     if (keyCode === 1) {
         FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${fileNameSave}.htsl`, guiText.join("\n"));
-        ChatLib.chat(`&3[BHTSL] &fSaved text to ${fileNameSave}.htsl`);
+        ChatLib.chat(`&3[BHTSL] &fSaved text to ${fileNameSave},htsl`);
 
         Keyboard.enableRepeatEvents(originalRepeat);
 
@@ -288,11 +288,11 @@ export default (fileName) => {
     let fullPath = FileLib.exists(path + ".htsl") ? path + ".htsl" : (FileLib.exists(path + ".txt") ? path + ".txt" : null);
 
     if (!fullPath) {
-        ChatLib.chat(`&3[BHTSL] &fCreated new file "${fileName}.htsl"`);
+        ChatLib.chat(`&3[BHTSL] &fCreated new file "${fileName},htsl"`);
         FileLib.write(path + ".htsl", "");
         guiText = [""];
     } else {
-        ChatLib.chat(`&3[BHTSL] &fLoading ${fileName}.htsl`);
+        ChatLib.chat(`&3[BHTSL] &fLoading ${fileName},htsl`);
         guiText = FileLib.read(fullPath).split("\n");
     }
 

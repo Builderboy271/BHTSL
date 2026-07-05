@@ -1,4 +1,4 @@
-import { addOperation, forceOperation } from "../gui/Queue";
+import { addOperation, forceOperation, isExportChainActive } from "../gui/Queue";
 import { convertJSON } from "./convertAction";
 import menus from "../actions/menus";
 import conditions from "../actions/conditions";
@@ -10,7 +10,7 @@ let subactions;
  * Exports action data to HTSL file
  * @param {string} fileName File name to which to write exported HTSL code
  */
-export default (fileName) => {
+export default (fileName, header = null) => {
     let items = Player.getContainer().getItems();
     items = items.splice(0, Player.getContainer().getSize() - 9 - 36);
     actionobjs = [];
@@ -24,7 +24,11 @@ export default (fileName) => {
                 contextTarget: {},
                 actions: actionobjs
             }], fileName);
-            FileLib.write("BHTSL", `imports/${fileName}.htsl`, script.script, true);
+            let output = script.script;
+            if (header) {
+                output = `${header}\n${output}`;
+            }
+            FileLib.write("BHTSL", `imports/${fileName}.htsl`, output, true);
             for (let i = 0; i < script.items.length; i++) {
                 let baseDir = `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}`;
                 let originalName = script.items[i].name;
@@ -40,6 +44,7 @@ export default (fileName) => {
 
                 FileLib.write("BHTSL", `${baseDir}${finalName}${extension}`, script.items[i].string, true);
             }
+            if (!isExportChainActive()) ChatLib.chat(`&3[BHTSL] &aExported to &f${fileName},htsl`);
         }
     });
 }
@@ -133,7 +138,7 @@ function processPage(items, actionList, menuList, condition) {
                                 if (currentValue === "House Spawn Location") actionobj[property] = "house_spawn";
                                 else if (currentValue === "Invokers Location") actionobj[property] = "invokers_location";
                                 else actionobj[property] = `"custom_coordinates" "${currentValue.replaceAll(/(?:,|yaw: |pitch: )/g, "")}"`;
-                            } else actionobj[property] = currentValue
+                            } else actionobj[property] = '"' + currentValue + '"';
                         }
                     });
                 }
@@ -194,7 +199,7 @@ function processPage(items, actionList, menuList, condition) {
                             break;
                         }
                         if (!(value.startsWith("\"") && value.endsWith("\""))) value = value.replaceAll(",", "");
-                        if (line.startsWith("§5§o§7Sound:") || line.startsWith("§5§o§7Message:")) value = `"` + value + `"`;
+                        if (value.trim() === "" || isNaN(Number(value)) && (!value.startsWith('"') && !value.endsWith('"') && value !== "Player" && value !== "Global" && value !== "Team")) value = `"${value}"`;
                         actionobj[property] = value;
                         break;
                 }

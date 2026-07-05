@@ -7,6 +7,8 @@ let fails = [];
 let timeWithoutOperation = 0;
 let operationTimes = { started: 0, total: 0 };
 let currentGuiContext = null;
+let exportChainStatus = { active: false, current: 0, total: 0 };
+let exportChainCancelRequested = false;
 
 register("tick", () => {
     if (queue.length > 0) timeWithoutOperation++;
@@ -44,9 +46,11 @@ register("tick", () => {
             queue.length) /
         1000
     );
-    timeRemainingButton.setText(
-        `Time Remaining: ${Math.floor(timeRemaining / 60)}m ${timeRemaining % 60}s`
-    );
+    let timeText = `Time Remaining: ${Math.floor(timeRemaining / 60)}m ${timeRemaining % 60}s`;
+    if (exportChainStatus.active) {
+        timeText += ` | ${exportChainStatus.current}/${exportChainStatus.total}`;
+    }
+    timeRemainingButton.setText(timeText);
 
     let operation = queue.shift();
     if (operation.type === "setGuiContext") {
@@ -166,7 +170,7 @@ register("guiRender", (x, y) => {
 });
 
 register("guiMouseClick", (x, y) => {
-    if (!Player.getContainer()) return;
+    if (!Player.getContainer() || queue.length === 0) return;
 
     if (
         x > cancelButton.getX() &&
@@ -174,7 +178,8 @@ register("guiMouseClick", (x, y) => {
         y > cancelButton.getY() &&
         y < cancelButton.getY() + cancelButton.getHeight()
     ) {
-        queue.splice(0, queue.length - 1);
+        cancelQueue();
+        ChatLib.chat("&3[BHTSL] &cOperation cancelled.");
     }
     if (Settings.reloadButton && queue.length > 0) if (
         x > reloadButton.getX() &&
@@ -187,7 +192,6 @@ register("guiMouseClick", (x, y) => {
 });
 
 export function addOperation(operation) {
-    // console.log(JSON.stringify(operation));
     if (!Navigator.isWorking) {
         if (operation.type == "returnToEditActions") return;
         Navigator.isLoadingItem = false;
@@ -204,6 +208,41 @@ export function forceOperation(operation) {
     }
     Navigator.isWorking = true;
     queue.unshift(operation);
+}
+
+export function setExportChainStatus(active, current, total) {
+    exportChainStatus.active = active;
+    exportChainStatus.current = current;
+    exportChainStatus.total = total;
+    if (!active) {
+        exportChainCancelRequested = false;
+    }
+}
+
+export function resetExportChainStatus() {
+    exportChainStatus.active = false;
+    exportChainStatus.current = 0;
+    exportChainStatus.total = 0;
+    exportChainCancelRequested = false;
+}
+
+export function isExportChainCanceled() {
+    return exportChainCancelRequested;
+}
+
+export function isExportChainActive() {
+    return exportChainStatus.active;
+}
+
+export function cancelQueue() {
+    queue = [];
+    Navigator.isWorking = false;
+    Navigator.isReady = true;
+    operationTimes = { started: 0, total: 0 };
+    exportChainCancelRequested = true;
+    exportChainStatus.active = false;
+    exportChainStatus.current = 0;
+    exportChainStatus.total = 0;
 }
 
 export function isWorking() {

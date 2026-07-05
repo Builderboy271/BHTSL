@@ -1,36 +1,8 @@
-import request from "requestV2";
 import Settings from "../utils/config";
 import syntaxs from "../actions/syntax";
 import menus from "../actions/menus";
 import _conditions from "../actions/conditions";
 import getItemFromNBT from '../utils/getItemFromNBT';
-
-const housingEditor = 'https://api.housingeditor.com'
-
-/**
- * Converts a HousingEditor action to HTSL.
- * @param {string} actionId Housing Editor Action ID
- * @param {string} filename Filename to export to
- * @returns 
- */
-export function convertHE(actionId, filename) {
-    if (actionId === 'test') return loadTestAction();
-
-    request("${housingEditor}/actions/${actionId}").then(response => {
-        const json = response.data;
-        FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${filename}.htsl`, convertData(json.actionData, json.post?.title, json.author?.name));
-    }).catch(error => {
-        if (!error.response) return ChatLib.chat('&cError: ' + error);
-        const response = error.response;
-        const contentType = response.headers['Content-Type'];
-        if (contentType.indexOf('application/json') > -1) {
-            const json = response.data;
-            ChatLib.chat('&cError: ' + json.message);
-        } else {
-            ChatLib.chat('&cError: ' + response.statusText);
-        }
-    });
-}
 
 
 let items = [];
@@ -222,29 +194,6 @@ function reverseMode(mode) {
         default:
             return mode;
     }
-}
-
-/**
- * Old housing editor code for conversion to HTSL.
- * @param {[string, object][]} actionList A list of actions to convert
- * @param {string} title Title of the action 
- * @param {string} author Author of the action.
- * @returns HTSL script
- */
-function convertData(actionList, title, author) {
-    let script = [];
-    script.push(`// Original action "${title}" by ${author}`);
-
-    for (let i = 0; i < actionList.length; i++) {
-        if (actionList[i] && actionList[i].length > 0) {
-            let actionType = actionList[i][0];
-            let actionData = actionList[i][1];
-            script.push(readActions(actionType, actionData));
-        }
-    }
-
-    script = script.join('\n');
-    return script;
 }
 
 /**
