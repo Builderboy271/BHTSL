@@ -398,6 +398,9 @@ function componentFunc(args, syntax, menu) {
 			params.push(syntax.type === "CHANGE_VARIABLE" ? "automatic_unset" : "fallback_value");
 			args.push(syntax.type === "CHANGE_VARIABLE" ? "true" : "0L");
 		}
+		if (args[1].startsWith('"') && args[1].endsWith('"')) { // Remove quotes from variable name
+			args[1] = args[1].substring(1, args[1].length - 1);
+		}
 		if (args[1].length > 16) {
 			return `Variable key &e${args[1]} &cis too long on &eline {line}&c. The limit is 16 characters`;
 		}
