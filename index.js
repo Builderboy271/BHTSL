@@ -358,7 +358,7 @@ function exportFunctionsSequentially(functionNames) {
                     }
 
                     if (!isWorking()) {
-                        ChatLib.chat(`&3[BHTSL] &aExported &f${funcName} &ato &f${fileName},htsl`);
+                        ChatLib.chat(`&3[BHTSL] &aExported &f${funcName} &ato &f${fileName}.htsl`);
                         setTimeout(runNext, 0);
                     } else {
                         setTimeout(waitForFinish, 50);
@@ -435,7 +435,7 @@ function exportCommandsSequentially(commandNames) {
                     }
 
                     if (!isWorking()) {
-                        ChatLib.chat(`&3[BHTSL] &aExported &f${cmdName} &ato &f${fileName},htsl`);
+                        ChatLib.chat(`&3[BHTSL] &aExported &f${cmdName} &ato &f${fileName}.htsl`);
                         setTimeout(runNext, 0);
                     } else {
                         setTimeout(waitForFinish, 50);
