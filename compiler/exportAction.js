@@ -44,7 +44,7 @@ export default (fileName, header = null) => {
 
                 FileLib.write("BHTSL", `${baseDir}${finalName}${extension}`, script.items[i].string, true);
             }
-            if (!isExportChainActive()) ChatLib.chat(`&3[BHTSL] &aExported to &f${fileName},htsl`);
+            if (!isExportChainActive()) ChatLib.chat(`&3[BHTSL] &aExported to &f${fileName}.htsl`);
         }
     });
 }
