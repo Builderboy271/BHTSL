@@ -143,8 +143,11 @@ function renderActionGUI(x, y, gui) {
                         let content = FileLib.read("BHTSL", `imports/${pathKey}`);
                         if (content) {
                             try {
-                                item = getItemFromNBT(JSON.parse(content).item);
-                                renderItemIcons[pathKey] = item;
+                                let nbtStr = safeParseItem(content);
+                                if (nbtStr) {
+                                    item = getItemFromNBT(nbtStr);
+                                    renderItemIcons[pathKey] = item;
+                                }
                             } catch (e) { }
                         }
                     }
@@ -272,10 +275,10 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
         return;
     }
 
-    if (waitingForExportClick) {
+        if (waitingForExportClick) {
         const slot = Client.currentGui.getSlotUnderMouse();
         if (slot && slot.getItem()) {
-            let item = slot.getItem().getNBT().toString().replace(/["]/g, '\\$&');
+            let item = slot.getItem().getNBT().toString();
 
             let baseDir = `./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${subDir}${input.getText().replace(/[^\\/]+$/, '')}`;
 
@@ -295,7 +298,7 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
                 counter++;
             }
 
-            FileLib.write(`${baseDir}${finalName}.json`, `{"item": "${item}"}`, true);
+            FileLib.write(`${baseDir}${finalName}.json`, JSON.stringify({ item: item }), true);
 
             if (!Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && !Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
                 waitingForExportClick = false;
@@ -423,11 +426,14 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
                 }
                 let content = FileLib.read('BHTSL', `/imports/${selected}`);
                 if (content) {
-                    let item = getItemFromNBT(JSON.parse(content).item);
-                    let slot = Player.getInventory().getItems().indexOf(null);
-                    if (slot < 9 && slot !== -1) slot += 36;
-                    if (slot !== -1) loadItemstack(item.getItemStack(), slot);
-                    World.playSound('random.click', 0.5, 1);
+                    let nbtStr = safeParseItem(content);
+                    if (nbtStr) {
+                        let item = getItemFromNBT(nbtStr);
+                        let slot = Player.getInventory().getItems().indexOf(null);
+                        if (slot < 9 && slot !== -1) slot += 36;
+                        if (slot !== -1) loadItemstack(item.getItemStack(), slot);
+                        World.playSound('random.click', 0.5, 1);
+                    }
                 }
             }
         }
@@ -551,6 +557,30 @@ function readDir(path, walk) {
         }
     });
     return fileNames;
+}
+
+// Safely parse item JSON files that may contain unescaped control characters
+function safeParseItem(content) {
+    try {
+        return JSON.parse(content).item;
+    } catch (e) {
+        try {
+            let keyIndex = content.indexOf('"item"');
+            if (keyIndex === -1) return null;
+            let colon = content.indexOf(':', keyIndex);
+            let firstQuote = content.indexOf('"', colon);
+            let lastQuote = content.lastIndexOf('"');
+            if (firstQuote === -1 || lastQuote === -1 || lastQuote <= firstQuote) return null;
+            let raw = content.substring(firstQuote + 1, lastQuote);
+            // Escape existing backslashes, then escape control characters
+            let escaped = raw.replace(/\\/g, '\\\\').replace(/\\/g, '\\\\').replace(/\\r/g, '\\r').replace(/\\n/g, '\\n');
+            escaped = raw.replace(/\\/g, '\\\\').replace(/\r/g, '\\r').replace(/\n/g, '\\n');
+            let repaired = content.substring(0, firstQuote + 1) + escaped + content.substring(lastQuote);
+            return JSON.parse(repaired).item;
+        } catch (e2) {
+            return null;
+        }
+    }
 }
 
 function isInItemGui() {

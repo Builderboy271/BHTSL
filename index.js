@@ -72,8 +72,8 @@ register("command", ...args => {
         }
         if (command === 'saveitem') {
             if (args.length < 2) return ChatLib.chat("&3[BHTSL] &cPlease enter a filename to save it to!");
-            let itemHeld = Player.getHeldItem().getNBT().toString().replace(/["]/g, '\\$&');
-            FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args[1]}.json`, `{"item": "${itemHeld}"}`, true);
+            let itemHeld = Player.getHeldItem().getNBT().toString();
+            FileLib.write(`./config/ChatTriggers/modules/BHTSL/imports/${Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : ""}${Settings.itemPrefix.length > 1 ? Settings.itemPrefix + "/" : ""}${args[1]}.json`, JSON.stringify({ item: itemHeld }), true);
             return ChatLib.chat(`&3[BHTSL] &fSaved item to ${args[1]}.json`);
         }
         if (command === "addfunctions") {
