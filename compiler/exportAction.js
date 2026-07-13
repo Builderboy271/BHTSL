@@ -26,9 +26,22 @@ export default (fileName, header = null) => {
             }], fileName);
             let output = script.script;
             if (header) {
-                output = `${header}\n${output}`;
+                if (output) {
+                    output = `${header}\n${output}`;
+                } else {
+                    output = header;
+                }
             }
-            FileLib.write("BHTSL", `imports/${fileName}.htsl`, output, true);
+            const path = `imports/${fileName}.htsl`;
+            if (FileLib.exists("BHTSL", path)) {
+                try {
+                    const existing = FileLib.read("BHTSL", path);
+                    output = existing + "\n" + output;
+                } catch (e) {
+                    // fallback
+                }
+            }
+            FileLib.write("BHTSL", path, output, true);
             for (let i = 0; i < script.items.length; i++) {
                 let baseDir = `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}`;
                 let originalName = script.items[i].name;

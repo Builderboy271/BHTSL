@@ -8,7 +8,7 @@ import { getSubDir } from './gui/LoadActionGUI';
 import Config from "./utils/config";
 import codeWindow from './gui/codeWindow';
 import { preProcess } from './compiler/compile';
-import { addOperation, isWorking, setExportChainStatus, resetExportChainStatus, isExportChainCanceled } from './gui/Queue';
+import { addOperation, forceOperation, isWorking, setExportChainStatus, resetExportChainStatus, isExportChainCanceled } from './gui/Queue';
 import Navigator from './gui/Navigator';
 import { checkVersion } from "./update/update";
 import getItemFromNBT from './utils/getItemFromNBT';
@@ -28,6 +28,10 @@ let waitingForTabComplete = false;
 let tabCompleteTimeout = null;
 let chainExportOffset = 0;
 let exportTarget = 'function';
+let exportChainQueue = [];
+let exportChainSystemsTotal = 0;
+let exportChainSystemIndex = 0;
+let useAllSystemsDir = false;
 
 register("command", ...args => {
     let command;
@@ -143,48 +147,25 @@ register("command", ...args => {
                 return;
             }
         }
-        if (command === "exportallfunctions") {
-            if (args.length == 1){
+        if (command === "exportall") {
+            if (args.length == 1) return ChatLib.chat("&3[BHTSL] &cPlease specify a system or 'all'!");
+
+            const system = args[1].toLowerCase();
+            const validSystems = ['all', 'functions', 'commands', 'regions', 'events'];
+            if (!validSystems.includes(system)) return ChatLib.chat("&3[BHTSL] &cInvalid system!");
+
+            if (system === 'all' || args.length <= 2) {
                 chainExportOffset = 0;
             } else {
-                chainExportOffset = parseInt(args[1]);
+                chainExportOffset = parseInt(args[2]);
+                if (isNaN(chainExportOffset)) chainExportOffset = 0;
             }
 
-            exportTarget = 'function';
-
-            const C14PacketTabComplete = Java.type("net.minecraft.network.play.client.C14PacketTabComplete");
-            const packet = new C14PacketTabComplete("/function run ");
-            Client.sendPacket(packet);
-            waitingForTabComplete = true;
-            
-            tabCompleteTimeout = setTimeout(() => {
-                if (waitingForTabComplete) {
-                    ChatLib.chat("&3[BHTSL] &cTimed out while waiting for function list.");
-                    waitingForTabComplete = false;
-                }
-            }, 5000);
-            return;
-        }
-        if (command === "exportallcommands") {
-            if (args.length == 1) {
-                chainExportOffset = 0;
-            } else {
-                chainExportOffset = parseInt(args[1]);
-            }
-
-            exportTarget = 'command';
-
-            const C14PacketTabComplete = Java.type("net.minecraft.network.play.client.C14PacketTabComplete");
-            const packet = new C14PacketTabComplete("/command edit ");
-            Client.sendPacket(packet);
-            waitingForTabComplete = true;
-
-            tabCompleteTimeout = setTimeout(() => {
-                if (waitingForTabComplete) {
-                    ChatLib.chat("&3[BHTSL] &cTimed out while waiting for command list.");
-                    waitingForTabComplete = false;
-                }
-            }, 5000);
+            exportChainQueue = system === 'all' ? ['regions', 'events', 'commands', 'functions'] : [system];
+            exportChainSystemsTotal = exportChainQueue.length;
+            exportChainSystemIndex = 0;
+            useAllSystemsDir = system === 'all';
+            startNextExportSystem();
             return;
         }
         if (command === "installupdate") {
@@ -242,8 +223,7 @@ register("command", ...args => {
             ChatLib.chat("&6/bhtsl version &7Returns your current BHTSL version");
             ChatLib.chat("&6/bhtsl giveitem <filename> &7Gives you an item from your imports");
             ChatLib.chat("&6/bhtsl import <filename> &7Imports given file (ignores default context)");
-            ChatLib.chat("&6/bhtsl exportallfunctions <offset> &7Exports all house functions");
-            ChatLib.chat("&6/bhtsl exportallcommands <offset> &7Exports all house commands");
+            ChatLib.chat("&6/bhtsl exportall <system> <offset> &7Exports all containers in a system type with an optional offset (regions, events, commands, functions, all)");
             ChatLib.chat("&6/bhtsl installupdate &7Downloads and installs the latest update (can be used to reinstall)");
             ChatLib.chat("&8&m" + ChatLib.getChatBreak());
             return;
@@ -266,7 +246,7 @@ register("command", ...args => {
             ChatLib.chat('&3[BHTSL] &fUnknown command! Try /bhtsl for help!');
         }
     }
-}).setTabCompletions("help", "edit", "config", "guide", "changelog", "saveitem", "addfunctions", "listscripts", "version", "giveitem", "import", "exportallfunctions", "exportallcommands", "installupdate").setName('bhtsl').setAliases(['htsl', 'bht', 'ht']);
+}).setTabCompletions("help", "edit", "config", "guide", "changelog", "saveitem", "addfunctions", "listscripts", "version", "giveitem", "import", "exportall", "installupdate").setName('bhtsl').setAliases(['htsl', 'bht', 'ht']);
 
 register("packetReceived", (packet, event) => {
     if (!Settings.disableBHTSLFeatures) {
@@ -296,17 +276,59 @@ register("packetReceived", (packet) => {
             tabCompleteTimeout = null;
         }
 
-        let names = completions.splice(chainExportOffset);
+        const names = completions.splice(chainExportOffset);
         if (exportTarget === 'command') {
-            exportCommandsSequentially(names);
+            exportCommandsSequentially(names, startNextExportSystem);
+        } else if (exportTarget === 'region') {
+            exportRegionsSequentially(names, startNextExportSystem);
         } else {
-            exportFunctionsSequentially(names);
+            exportFunctionsSequentially(names, startNextExportSystem);
         }
     }
 }).setFilteredClass(Java.type("net.minecraft.network.play.server.S3APacketTabComplete"));
 
-function exportFunctionsSequentially(functionNames) {
+function startNextExportSystem() {
+    if (exportChainQueue.length === 0) {
+        if (exportChainSystemsTotal > 0) {
+            ChatLib.chat("&3[BHTSL] &aAll systems exported successfully!");
+        }
+        return;
+    }
+
+    exportChainSystemIndex++;
+    const nextSystem = exportChainQueue.shift();
+    if (nextSystem === 'events') {
+        exportTarget = 'event';
+        exportEventsSequentially(startNextExportSystem);
+        return;
+    } else if (nextSystem === 'commands') {
+        exportTarget = 'command';
+    } else if (nextSystem === 'regions') {
+        exportTarget = 'region';
+    } else {
+        exportTarget = 'function';
+    }
+
+    const C14PacketTabComplete = Java.type("net.minecraft.network.play.client.C14PacketTabComplete");
+    const packet = new C14PacketTabComplete(
+        exportTarget === 'command' ? "/command edit " :
+        exportTarget === 'region' ? "/region edit " :
+        "/function run "
+    );
+    Client.sendPacket(packet);
+    waitingForTabComplete = true;
+
+    tabCompleteTimeout = setTimeout(() => {
+        if (waitingForTabComplete) {
+            ChatLib.chat(`&3[BHTSL] &cTimed out while waiting for ${exportTarget === 'command' ? 'commands' : exportTarget === 'region' ? 'regions' : 'functions'} list.`);
+            waitingForTabComplete = false;
+        }
+    }, 5000);
+}
+
+function exportRegionsSequentially(regionNames, onComplete) {
     let index = 0;
+    let regionExportStage = 'entry';
     resetExportChainStatus();
 
     const runNext = () => {
@@ -316,19 +338,26 @@ function exportFunctionsSequentially(functionNames) {
             return;
         }
 
-        if (index >= functionNames.length) {
-            ChatLib.chat(`&3[BHTSL] &aFinished exporting ${functionNames.length} function${functionNames.length === 1 ? "" : "s"}.`);
+        if (index >= regionNames.length) {
+            ChatLib.chat(`&3[BHTSL] &aFinished exporting ${regionNames.length} region${regionNames.length === 1 ? "" : "s"}.`);
             resetExportChainStatus();
+            if (onComplete) onComplete();
             return;
         }
 
-        const funcName = functionNames[index];
-        index++;
-        setExportChainStatus(true, index, functionNames.length);
+        const regionName = regionNames[index];
+        const stageName = regionExportStage;
 
-        ChatLib.command(`function edit ${funcName}`);
+        if (regionExportStage === 'exit') {
+            index++;
+        }
+        regionExportStage = regionExportStage === 'entry' ? 'exit' : 'entry';
 
-        const waitForGui = (attempts = 0) => {
+        setExportChainStatus(true, index, regionNames.length, exportChainSystemIndex, exportChainSystemsTotal);
+
+        ChatLib.command(`region edit ${regionName}`);
+
+        const waitForRegionGui = (attempts = 0) => {
             if (isExportChainCanceled()) {
                 ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
                 resetExportChainStatus();
@@ -336,53 +365,229 @@ function exportFunctionsSequentially(functionNames) {
             }
 
             const container = Player.getContainer();
-            const hasActionGui = container && container.getName && container.getName().match(/Edit Actions|Actions: /);
-            if (hasActionGui) {
-                const base = (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_functions/";
-                const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
-                let namePart = funcName.replace(/[\\/]+/g, "_");
-                namePart = sanitize(namePart);
-                const fileName = base + namePart;
-                try {
-                    const header = Settings.exportAllAddGotoHeader ? `goto function "${funcName}"` : null;
-                    exportAction(fileName, header);
-                } catch (e) {
-                    ChatLib.chat(`&3[BHTSL] &cFailed to export ${funcName}: ${e}`);
-                }
+            const isRegionGui = container && container.getName && container.getName().match(/Edit .*/);
 
-                const waitForFinish = () => {
+            if (isRegionGui) {
+                const slotToClick = stageName === 'entry' ? 31 : 33;
+                forceOperation({ type: "click", slot: slotToClick });
+
+                const waitForActionGui = (actionAttempts = 0) => {
                     if (isExportChainCanceled()) {
                         ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
                         resetExportChainStatus();
                         return;
                     }
 
-                    if (!isWorking()) {
-                        ChatLib.chat(`&3[BHTSL] &aExported &f${funcName} &ato &f${fileName},htsl`);
-                        setTimeout(runNext, 0);
-                    } else {
-                        setTimeout(waitForFinish, 50);
+                    const actionContainer = Player.getContainer();
+                    const hasActionGui = actionContainer && actionContainer.getName && actionContainer.getName().match(/Edit Actions|Actions: /);
+
+                    if (hasActionGui) {
+                        const base = useAllSystemsDir ? (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_systems/regions/" : (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_regions/";
+                        const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
+                        let namePart = regionName.replace(/[\\/]+/g, "_");
+                        namePart = sanitize(namePart);
+                        const fileName = base + namePart;
+
+                        try {
+                            const header = `goto region ${stageName} "${regionName}"`;
+                            exportAction(fileName, header);
+                        } catch (e) {
+                            ChatLib.chat(`&3[BHTSL] &cFailed to export ${regionName} ${stageName}: ${e}`);
+                        }
+
+                        const waitForFinish = () => {
+                            if (isExportChainCanceled()) {
+                                ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                                resetExportChainStatus();
+                                return;
+                            }
+
+                            if (!isWorking()) {
+                                ChatLib.chat(`&3[BHTSL] &aExported &f${regionName} (${stageName}) &ato &f${fileName}.htsl`);
+                                setTimeout(runNext, 0);
+                            } else {
+                                setTimeout(waitForFinish, 50);
+                            }
+                        };
+
+                        waitForFinish();
+                        return;
                     }
+
+                    if (actionAttempts > 100) {
+                        ChatLib.chat(`&3[BHTSL] &cTimed out opening region ${regionName} ${stageName} actions. Skipping.`);
+                        if (stageName === 'exit') {
+                            index++;
+                            regionExportStage = 'entry';
+                        }
+                        setTimeout(runNext, 0);
+                        return;
+                    }
+
+                    setTimeout(() => waitForActionGui(actionAttempts + 1), 50);
                 };
-                waitForFinish();
+
+                waitForActionGui();
                 return;
             }
 
             if (attempts > 100) {
-                ChatLib.chat(`&3[BHTSL] &cTimed out opening function ${funcName}. Skipping.`);
+                ChatLib.chat(`&3[BHTSL] &cTimed out opening region ${regionName}. Skipping.`);
+                if (stageName === 'exit') {
+                    index++;
+                    regionExportStage = 'entry';
+                }
                 setTimeout(runNext, 0);
                 return;
             }
-            setTimeout(() => waitForGui(attempts + 1), 50);
+
+            setTimeout(() => waitForRegionGui(attempts + 1), 100);
         };
 
-        waitForGui();
+        waitForRegionGui();
     };
 
     runNext();
 }
 
-function exportCommandsSequentially(commandNames) {
+function exportEventsSequentially(onComplete) {
+    const slots = [10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31];
+    let index = 0;
+    let exported = 0;
+    const base = useAllSystemsDir ? (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_systems/events/" : (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_events/";
+    const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
+
+    resetExportChainStatus();
+
+    const runNext = () => {
+        if (isExportChainCanceled()) {
+            ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+            resetExportChainStatus();
+            return;
+        }
+
+        if (index >= slots.length) {
+            ChatLib.chat(`&3[BHTSL] &aFinished exporting ${exported} event${exported === 1 ? "" : "s"}.`);
+            resetExportChainStatus();
+            if (onComplete) onComplete();
+            return;
+        }
+
+        const slot = slots[index];
+        index++;
+        setExportChainStatus(true, index, slots.length, exportChainSystemIndex, exportChainSystemsTotal);
+
+        ChatLib.command("eventaction");
+
+        const waitForEventList = (attempts = 0) => {
+            if (isExportChainCanceled()) {
+                ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                resetExportChainStatus();
+                return;
+            }
+
+            const container = Player.getContainer();
+            const hasEventListGui = container && container.getName && container.getName().match(/Event Actions/);
+            if (hasEventListGui) {
+                const ensureItemLoaded = (loadAttempts = 0) => {
+                    if (isExportChainCanceled()) {
+                        ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                        resetExportChainStatus();
+                        return;
+                    }
+
+                    const container2 = Player.getContainer();
+                    const items = container2 && container2.getItems ? container2.getItems() : [];
+                    const item = items[slot];
+
+                    if (!item || !item.getName()) {
+                        if (loadAttempts > 50) {
+                            ChatLib.chat(`&3[BHTSL] &cNo event found in slot ${slot}. Skipping.`);
+                            setTimeout(runNext, 0);
+                            return;
+                        }
+                        setTimeout(() => ensureItemLoaded(loadAttempts + 1), 100);
+                        return;
+                    }
+
+                    const eventName = ChatLib.removeFormatting(item.getName()).trim();
+                    if (!eventName || /no actions?/i.test(eventName)) {
+                        ChatLib.chat(`&3[BHTSL] &cNo event found in slot ${slot}. Skipping.`);
+                        setTimeout(runNext, 0);
+                        return;
+                    }
+
+                    const fileName = base + sanitize(eventName);
+                    const header = `goto event "${eventName}"`;
+
+                    forceOperation({ type: "click", slot: slot });
+
+                    const waitForActionGui = (actionAttempts = 0) => {
+                        if (isExportChainCanceled()) {
+                            ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                            resetExportChainStatus();
+                            return;
+                        }
+
+                        const actionContainer = Player.getContainer();
+                        const hasActionGui = actionContainer && actionContainer.getName && actionContainer.getName().match(/Edit Actions|Actions: /);
+                        if (hasActionGui) {
+                            try {
+                                exportAction(fileName, header);
+                            } catch (e) {
+                                ChatLib.chat(`&3[BHTSL] &cFailed to export ${eventName}: ${e}`);
+                            }
+
+                            const waitForFinish = () => {
+                                if (isExportChainCanceled()) {
+                                    ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                                    resetExportChainStatus();
+                                    return;
+                                }
+
+                                if (!isWorking()) {
+                                    exported++;
+                                    ChatLib.chat(`&3[BHTSL] &aExported &f${eventName} &ato &f${fileName}.htsl`);
+                                    setTimeout(runNext, 0);
+                                } else {
+                                    setTimeout(waitForFinish, 50);
+                                }
+                            };
+
+                            waitForFinish();
+                            return;
+                        }
+
+                        if (actionAttempts > 100) {
+                            ChatLib.chat(`&3[BHTSL] &cTimed out opening event ${eventName} actions. Skipping.`);
+                            setTimeout(runNext, 0);
+                            return;
+                        }
+                        setTimeout(() => waitForActionGui(actionAttempts + 1), 50);
+                    };
+
+                    waitForActionGui();
+                };
+
+                ensureItemLoaded();
+                return;
+            }
+
+            if (attempts > 100) {
+                ChatLib.chat(`&3[BHTSL] &cTimed out opening event actions GUI. Skipping slot ${slot}.`);
+                setTimeout(runNext, 0);
+                return;
+            }
+            setTimeout(() => waitForEventList(attempts + 1), 100);
+        };
+
+        waitForEventList();
+    };
+
+    runNext();
+}
+
+function exportCommandsSequentially(commandNames, onComplete) {
     let index = 0;
     resetExportChainStatus();
 
@@ -396,12 +601,13 @@ function exportCommandsSequentially(commandNames) {
         if (index >= commandNames.length) {
             ChatLib.chat(`&3[BHTSL] &aFinished exporting ${commandNames.length} command${commandNames.length === 1 ? "" : "s"}.`);
             resetExportChainStatus();
+            if (onComplete) onComplete();
             return;
         }
 
         const cmdName = commandNames[index];
         index++;
-        setExportChainStatus(true, index, commandNames.length);
+        setExportChainStatus(true, index, commandNames.length, exportChainSystemIndex, exportChainSystemsTotal);
 
         ChatLib.command(`command actions ${cmdName}`);
 
@@ -415,13 +621,13 @@ function exportCommandsSequentially(commandNames) {
             const container = Player.getContainer();
             const hasActionGui = container && container.getName && container.getName().match(/Edit Actions|Actions: /);
             if (hasActionGui) {
-                const base = (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_commands/";
+                const base = useAllSystemsDir ? (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_systems/commands/" : (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_commands/";
                 const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
                 let namePart = cmdName.replace(/[\\/]+/g, "_");
                 namePart = sanitize(namePart);
                 const fileName = base + namePart;
                 try {
-                    const header = Settings.exportAllAddGotoHeader ? `goto command "${cmdName}"` : null;
+                    const header = `goto command "${cmdName}"`;
                     exportAction(fileName, header);
                 } catch (e) {
                     ChatLib.chat(`&3[BHTSL] &cFailed to export ${cmdName}: ${e}`);
@@ -447,6 +653,84 @@ function exportCommandsSequentially(commandNames) {
 
             if (attempts > 100) {
                 ChatLib.chat(`&3[BHTSL] &cTimed out opening command ${cmdName}. Skipping.`);
+                setTimeout(runNext, 0);
+                return;
+            }
+            setTimeout(() => waitForGui(attempts + 1), 50);
+        };
+
+        waitForGui();
+    };
+
+    runNext();
+}
+
+function exportFunctionsSequentially(functionNames, onComplete) {
+    let index = 0;
+    resetExportChainStatus();
+
+    const runNext = () => {
+        if (isExportChainCanceled()) {
+            ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+            resetExportChainStatus();
+            return;
+        }
+
+        if (index >= functionNames.length) {
+            ChatLib.chat(`&3[BHTSL] &aFinished exporting ${functionNames.length} function${functionNames.length === 1 ? "" : "s"}.`);
+            resetExportChainStatus();
+            if (onComplete) onComplete();
+            return;
+        }
+
+        const funcName = functionNames[index];
+        index++;
+        setExportChainStatus(true, index, functionNames.length, exportChainSystemIndex, exportChainSystemsTotal);
+
+        ChatLib.command(`function edit ${funcName}`);
+
+        const waitForGui = (attempts = 0) => {
+            if (isExportChainCanceled()) {
+                ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                resetExportChainStatus();
+                return;
+            }
+
+            const container = Player.getContainer();
+            const hasActionGui = container && container.getName && container.getName().match(/Edit Actions|Actions: /);
+            if (hasActionGui) {
+                const base = useAllSystemsDir ? (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_systems/functions/" : (Settings.saveDirectory ? getSubDir().replace(/\\+/g, "/") : "") + "all_functions/";
+                const sanitize = (s) => s.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_").trim();
+                let namePart = funcName.replace(/[\\/]+/g, "_");
+                namePart = sanitize(namePart);
+                const fileName = base + namePart;
+                try {
+                    const header = `goto function "${funcName}"`;
+                    exportAction(fileName, header);
+                } catch (e) {
+                    ChatLib.chat(`&3[BHTSL] &cFailed to export ${funcName}: ${e}`);
+                }
+
+                const waitForFinish = () => {
+                    if (isExportChainCanceled()) {
+                        ChatLib.chat(`&3[BHTSL] &cExport chain cancelled.`);
+                        resetExportChainStatus();
+                        return;
+                    }
+
+                    if (!isWorking()) {
+                        ChatLib.chat(`&3[BHTSL] &aExported &f${funcName} &ato &f${fileName},htsl`);
+                        setTimeout(runNext, 0);
+                    } else {
+                        setTimeout(waitForFinish, 50);
+                    }
+                };
+                waitForFinish();
+                return;
+            }
+
+            if (attempts > 100) {
+                ChatLib.chat(`&3[BHTSL] &cTimed out opening function ${funcName}. Skipping.`);
                 setTimeout(runNext, 0);
                 return;
             }

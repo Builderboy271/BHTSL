@@ -110,14 +110,6 @@ class Settings {
 	useItemNameForExportedItems = false;
 
 	@SwitchProperty({
-		name: "Add goto header to exportall files",
-		description: "Prepends a goto line to .htsl files exported with /exportallfunctions and /exportallcommands so they import into the correct action container.",
-		category: "Importing/Exporting",
-		subcategory: "Importing/Exporting"
-	})
-	exportAllAddGotoHeader = false;
-
-	@SwitchProperty({
 		name: "Safe Mode",
 		description: 'Will show you where to click while loading in an action, this requires manual input and is no longer considered a "macro".\n\n&aSafeMode is recommended if you want to be extra careful not to break the rules.',
 		category: "Importing/Exporting",
