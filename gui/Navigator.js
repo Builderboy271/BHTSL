@@ -276,9 +276,14 @@ function deleteAction() {
 }
 
 let itemCallback;
+var waitingWindowId = -1;
+var preClickInventory = null;
+
 function getItemFromAction(callback) {
   Navigator.waitingForItem = true;
   Navigator.isWorking = true;
+  waitingWindowId = Player.getContainer().getWindowId();
+  preClickInventory = Player.getContainer().getItems().map(item => item ? item.getNBT().toString() : null);
   click(13);
   itemCallback = callback;
 }
@@ -287,9 +292,15 @@ register("packetReceived", (packet, event) => {
   if (!Navigator.isWorking) return;
   if (!Navigator.waitingForItem) return;
   if (!packet.func_149174_e()) return;
-  itemCallback(`{"item": "${new Item(packet.func_149174_e()).getNBT().toString().replace(/["]/g, '\\$&')}"}`);
+  if (packet.func_149175_c() !== waitingWindowId) return;
+  const slotId = packet.func_149173_d();
+  if (slotId < 27) return; 
+  const itemNBT = new Item(packet.func_149174_e()).getNBT().toString();
+  if (preClickInventory && preClickInventory[slotId] === itemNBT) return; // skip inventory sync packets
+  itemCallback(`{"item": "${itemNBT.replace(/["]/g, '\\$&')}"}`);
   Navigator.waitingForItem = false;
-  loadItem(null, packet.func_149173_d() - 27);
+  preClickInventory = null;
+  loadItem(null, slotId - 27); //27 to offset for the slotid
   click(31);
 }).setFilteredClass(S2FPacketSetSlot);
 

@@ -43,19 +43,11 @@ export default (fileName, header = null) => {
             }
             FileLib.write("BHTSL", path, output, true);
             for (let i = 0; i < script.items.length; i++) {
-                let baseDir = `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}`;
-                let originalName = script.items[i].name;
-                let extension = ".json";
+                let finalName = `imports/${fileName.substring(0, fileName.lastIndexOf("/") + 1)}` + script.items[i].name + ".json";
 
-                let finalName = originalName;
-                let counter = 1;
-
-                while (FileLib.exists("BHTSL", `${baseDir}${finalName}${extension}`)) {
-                    finalName = `${originalName}_${counter}`;
-                    counter++;
+                if (!FileLib.exists("BHTSL", finalName)) {
+                    FileLib.write("BHTSL", finalName, script.items[i].string, true);
                 }
-
-                FileLib.write("BHTSL", `${baseDir}${finalName}${extension}`, script.items[i].string, true);
             }
             if (!isExportChainActive()) ChatLib.chat(`&3[BHTSL] &aExported to &f${fileName},htsl`);
         }
