@@ -18,6 +18,8 @@ import exportAction from './compiler/exportAction';
 import { compile } from './compiler/compile';
 import Settings from './utils/config';
 import request from 'requestV2';
+import './features/copyHologram';
+import './features/copyNpc';
 
 const FileOutputStream = Java.type("java.io.FileOutputStream");
 const File = Java.type("java.io.File");

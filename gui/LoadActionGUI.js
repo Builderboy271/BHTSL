@@ -6,6 +6,7 @@ import Settings from '../utils/config';
 import getItemFromNBT from '../utils/getItemFromNBT';
 import loadItemstack from '../utils/loadItemstack';
 import codeWindow, { isCodeOpen } from '../gui/codeWindow';
+import { getNpcDisplay, selectNpcData, getSelectedNpcBase } from '../features/copyNpc';
 
 const Desktop = Java.type("java.awt.Desktop");
 const File = Java.type("java.io.File");
@@ -65,7 +66,7 @@ let waitingForExportClick = false;
 let tooltipItemStack = null;
 
 function renderActionGUI(x, y, gui) {
-    if (Settings.disableBHTSLFeatures || !Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isExportChainActive() || isCodeOpen()) return;
+    if (Settings.disableBHTSLFeatures || !Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : (isInActionGui() || isInNpcGui())) || isWorking() || isExportChainActive() || isCodeOpen()) return;
 
     let chestWidth = xSizeField.get(Client.currentGui.get());
     let chestX = Renderer.screen.getWidth() / 2 - chestWidth / 2;
@@ -111,7 +112,7 @@ function renderActionGUI(x, y, gui) {
                 let currentFile = filteredFiles[i];
                 let type;
                 if (currentFile.endsWith(".htsl")) type = Settings.altIcons ? nh_htslIcon : htslIcon;
-                else if (currentFile.endsWith(".json")) type = Settings.altIcons ? nh_itemIcon : itemIcon;
+                else if (currentFile.endsWith(".json") || currentFile.endsWith(".npcdata")) type = Settings.altIcons ? nh_itemIcon : itemIcon;
                 else type = Settings.altIcons ? nh_folderIcon : folderIcon;
 
                 let isHoveringRow = (y < topBound + 20 + 20 * (i - page * linesPerPage) && y > topBound + 20 * (i - page * linesPerPage) && x < xBound && x > input.getX());
@@ -128,7 +129,7 @@ function renderActionGUI(x, y, gui) {
                         let isHoveringPen = (x < xBound - 24 && x > xBound - 40);
                         Renderer.drawImage(isHoveringPen ? hoverEditPen : editPen, xBound - 40, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
-                    if (currentFile.endsWith(".htsl") || currentFile.endsWith(".json") || currentFile.endsWith("/")) {
+                    if (currentFile.endsWith(".htsl") || currentFile.endsWith(".json") || currentFile.endsWith(".npcdata") || currentFile.endsWith("/")) {
                         let isHoveringTrash = (x < xBound - 4 && x > xBound - 20);
                         Renderer.drawImage(isHoveringTrash ? openTrashBin : trashBin, xBound - 20, topBound + 4 + 20 * (i - page * linesPerPage), 16, 16);
                     }
@@ -136,8 +137,24 @@ function renderActionGUI(x, y, gui) {
                 }
 
                 let item = null;
+                let npcInfo = null;
                 let pathKey = currentFile;
-                if (Settings.itemIcons && currentFile.endsWith(".json")) {
+                if (currentFile.endsWith(".npcdata")) {
+                    // copied NPCs show their actual head/egg as icon
+                    if (renderItemIcons[pathKey] !== undefined) npcInfo = renderItemIcons[pathKey];
+                    else {
+                        npcInfo = getNpcDisplay(currentFile);
+                        renderItemIcons[pathKey] = npcInfo;
+                    }
+                    if (npcInfo) item = npcInfo.item;
+                } else if (isNpcFolder(currentFile)) {
+                    if (renderItemIcons[pathKey] !== undefined) npcInfo = renderItemIcons[pathKey];
+                    else {
+                        npcInfo = getNpcFolderInfo(currentFile);
+                        renderItemIcons[pathKey] = npcInfo;
+                    }
+                    if (npcInfo) item = npcInfo.item;
+                } else if (Settings.itemIcons && currentFile.endsWith(".json")) {
                     if (renderItemIcons[pathKey]) item = renderItemIcons[pathKey];
                     else {
                         let content = FileLib.read("BHTSL", `imports/${pathKey}`);
@@ -160,7 +177,7 @@ function renderActionGUI(x, y, gui) {
                 if (item) {
                     item.draw(input.getX(), topBound + 4 + 20 * (i - page * linesPerPage), 1, 200);
                     // Show lore tooltip when hovering over item icon
-                    if ((x < input.getX() + 16 && x > input.getX() && y < topBound + 4 + 16 + 20 * (i - page * linesPerPage) && y > topBound + 4 + 20 * (i - page * linesPerPage)) && currentFile.endsWith(".json")) {
+                    if ((x < input.getX() + 16 && x > input.getX() && y < topBound + 4 + 16 + 20 * (i - page * linesPerPage) && y > topBound + 4 + 20 * (i - page * linesPerPage)) && (currentFile.endsWith(".json") || currentFile.endsWith(".npcdata"))) {
                         tooltipItemStack = item.itemStack;
                     }
                 } else Renderer.drawImage(type, drawX, drawY, size, size);
@@ -169,7 +186,19 @@ function renderActionGUI(x, y, gui) {
                 let maxTextWidth = input.getWidth() - 35;
 
                 let dotIndex = displayName.lastIndexOf(".");
-                if (!currentFile.endsWith(".htsl") && !currentFile.endsWith(".json")) {
+                if (currentFile.endsWith(".npcdata")) {
+                    dotIndex = -1;
+                    if (npcInfo) {
+                        displayName = "&r" + npcInfo.name + " &7(" + npcInfo.type + ")";
+                        if (getSelectedNpcBase() === npcInfo.fileBase) displayName += " &a✔";
+                    } else {
+                        displayName = displayName.replace(/\.npcdata$/i, "") + " &8(npc)";
+                    }
+                } else if (isNpcFolder(currentFile) && npcInfo) {
+                    dotIndex = -1;
+                    displayName = "&r" + npcInfo.name + " &7(" + npcInfo.type + ")&8/";
+                    if (getSelectedNpcBase() === npcInfo.fileBase) displayName += " &a\u2714";
+                } else if (!currentFile.endsWith(".htsl") && !currentFile.endsWith(".json")) {
                     dotIndex = -1;
                     displayName = displayName.slice(0, -1) + "&8/&r";
                 }
@@ -249,7 +278,7 @@ register('postGuiRender', (x, y, gui) => {
 });
 
 register('guiKey', (char, keyCode, gui, event) => {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || !inputEnabled) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : (isInActionGui() || isInNpcGui())) || !inputEnabled) return;
     input.mcObject.func_146195_b(true);
     if (input.mcObject.func_146206_l()) {
         input.mcObject.func_146201_a(char, keyCode);
@@ -262,7 +291,7 @@ let lastClick = 0;
 let inputEnabled = false;
 
 register('guiMouseClick', (x, y, mouseButton, gui, event) => {
-    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : isInActionGui()) || isWorking() || isExportChainActive() || isCodeOpen()) return;
+    if (!Player.getContainer() || !(Settings.guiAvaliableEverywhere ? isInItemGui() : (isInActionGui() || isInNpcGui())) || isWorking() || isExportChainActive() || isCodeOpen()) return;
     if (Settings.debounce > Date.now() - lastClick) return;
 
     lastClick = Date.now();
@@ -415,7 +444,17 @@ register('guiMouseClick', (x, y, mouseButton, gui, event) => {
                 if (!isInActionGui()) return;
                 if (Player.asPlayerMP().player.field_71075_bZ.field_75098_d === false) ChatLib.command("gmc");
                 if (compile(selected.substring(0, selected.length - 5))) World.playSound('random.click', 0.5, 1);
+            } else if (selected.endsWith(".npcdata")) {
+                selectNpcData(selected);
             } else if (selected.endsWith("/")) {
+                if (isNpcFolder(selected)) {
+                    let info = renderItemIcons[selected] !== undefined ? renderItemIcons[selected] : getNpcFolderInfo(selected);
+                    if (info && info.dataPath && getSelectedNpcBase() !== info.fileBase) {
+                        // first click selects the NPC; clicking again opens the folder
+                        selectNpcData(info.dataPath);
+                        return;
+                    }
+                }
                 subDir = selected;
                 readFiles(true);
                 World.playSound('random.click', 0.5, 1);
@@ -512,7 +551,7 @@ function readFiles(forceRefresh = false) {
             lastSearchPath = searchPath;
             lastIsGlobalSearching = isGlobalSearching;
 
-            files = rawFiles.map(name => isGlobalSearching ? name : subDir + name).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || n.endsWith("/"));
+            files = rawFiles.map(name => isGlobalSearching ? name : subDir + name).filter(n => n.endsWith(".htsl") || n.endsWith(".json") || n.endsWith(".npcdata") || n.endsWith("/"));
 
             files.sort((a, b) => {
                 let isDirA = a.endsWith('/'), isDirB = b.endsWith('/');
@@ -551,7 +590,7 @@ function readDir(path, walk) {
             else fileNames.push(name + "/");
         } else {
             let lowerName = name.toLowerCase();
-            if (lowerName.endsWith(".htsl") || lowerName.endsWith(".json")) {
+            if (lowerName.endsWith(".htsl") || lowerName.endsWith(".json") || lowerName.endsWith(".npcdata")) {
                 fileNames.push(name);
             }
         }
@@ -599,8 +638,50 @@ function isInActionGui() {
     return false;
 }
 
+// direct child folders of NPCS/ hold one copied NPC each
+function isNpcFolder(path) {
+    return /^NPCS\/[^\/]+\/$/.test(path);
+}
+
+// finds the .npcdata inside an NPC folder and builds its display info
+function getNpcFolderInfo(folderPath) {
+    try {
+        const dir = new File(`./config/ChatTriggers/modules/BHTSL/imports/${folderPath}`);
+        if (!dir.exists() || !dir.isDirectory()) return null;
+        const files = dir.listFiles();
+        if (!files) return null;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].getName().endsWith(".npcdata")) {
+                const info = getNpcDisplay(folderPath + files[i].getName());
+                if (info) {
+                    info.dataPath = folderPath + files[i].getName();
+                    return info;
+                }
+            }
+        }
+    } catch (e) { }
+    return null;
+}
+
+// the Edit NPC menu shows the explorer too, so copied NPCs can be selected there
+function isInNpcGui() {
+    if (!Player.getContainer()) return false;
+    if (Client.currentGui.getClassName() === "GuiEditSign") return false;
+    if (Player.getContainer().getClassName() !== "ContainerChest") return false;
+    return ChatLib.removeFormatting(Player.getContainer().getName()).startsWith("Edit NPC - ");
+}
+
 register('guiOpened', () => {
     if (!Settings.disableBHTSLFeatures && Settings.refreshFileExplorerAutomatically) readFiles(true);
+    // opening an Edit NPC menu jumps straight to the copied NPCs
+    setTimeout(() => {
+        try {
+            if (!Settings.disableBHTSLFeatures && isInNpcGui() && subDir === "") {
+                subDir = "NPCS/";
+                readFiles(true);
+            }
+        } catch (e) { }
+    }, 150);
 });
 
 export function getSubDir() { return subDir; }

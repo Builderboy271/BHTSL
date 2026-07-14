@@ -96,7 +96,11 @@ function processPage(items, actionList, menuList, condition) {
             }
         }
         if (ChatLib.removeFormatting(items[i].getName()) == "No Actions!") continue;
-        if (!menu) return false;
+        if (ChatLib.removeFormatting(items[i].getName()) == "Left Click Redirect") continue; // NPC actions GUI toggle, not an action
+        if (!menu) {
+            ChatLib.chat(`&3[BHTSL] &cExport failed: unknown action item &e${ChatLib.removeFormatting(items[i].getName())}`);
+            return false;
+        }
         if (Object.keys(menu).length > 1) {
             // operations forced to the front of the queue, so they need to be added backwards
             let lore = Object.values(items[i].getLore());

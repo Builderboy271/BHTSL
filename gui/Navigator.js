@@ -214,6 +214,15 @@ function selectOption(optionName) {
       return;
     }
   }
+  // the next page arrow sits on different slots depending on the GUI, so find it by name
+  for (let i = 0; i < playerContainer.getSize() - 36; i++) {
+    let item = playerContainer.getItems()[i];
+    if (item === null) continue;
+    if (ChatLib.removeFormatting(item.name) === "Left-click for next page!") {
+      click(i);
+      return;
+    }
+  }
   if (playerContainer.getStackInSlot(53)?.getID() === 262) {
     click(53);
     return;

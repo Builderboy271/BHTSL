@@ -56,7 +56,7 @@ export function loadAction(script, deleteExisting) {
             addOperation({ type: 'deleteActions' });
         }
         for (let i = 0; i < script[container].actions.length; i++) {
-            addOperation({ type: 'click', slot: 50 }); // click "Add Action" Button
+            addOperation({ type: 'clickByName', name: "Add Action", fallbackSlot: 50 }); // click "Add Action" Button
             addOperation({ type: 'setGuiContext', context: "Add Action" });
             addOperation({ type: 'option', option: menus[script[container].actions[i].type].action_name });
             importComponent(script[container].actions[i], menus[script[container].actions[i].type]);
@@ -94,7 +94,7 @@ function importComponent(component, menu, condition) {
                 break;
             case "conditions":
                 for (let condition in component[key]) {
-                    addOperation({ type: 'click', slot: 50 }); // click "Add Condition" Button
+                    addOperation({ type: 'clickByName', name: "Add Condition", fallbackSlot: 50 }); // click "Add Condition" Button
                     addOperation({ type: 'option', option: conditions[component[key][condition].type].condition_name });
                     importComponent(component[key][condition], conditions[component[key][condition].type], true);
                     addOperation({ type: 'returnToEditActions' });
@@ -130,7 +130,7 @@ function importComponent(component, menu, condition) {
                 break;
             case "subactions":
                 for (let subaction in component[key]) {
-                    addOperation({ type: 'click', slot: 50 }); // click "Add Action" Button
+                    addOperation({ type: 'clickByName', name: "Add Action", fallbackSlot: 50 }); // click "Add Action" Button
                     addOperation({ type: 'option', option: menus[component[key][subaction].type].action_name });
                     importComponent(component[key][subaction], menus[component[key][subaction].type]);
                     addOperation({ type: 'returnToEditActions' });

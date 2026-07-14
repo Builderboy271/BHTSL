@@ -91,7 +91,25 @@ class Settings {
 	})
 	disableBHTSLFeatures = false;
 
-	// Importing/Exporting 
+	// NPC Copy/Paste
+
+	@SwitchProperty({
+		name: "Delete Existing NPC Actions on Paste",
+		description: 'When pasting a copied NPC, its existing left/right click actions are removed first so the paste replaces them instead of appending',
+		category: "General",
+		subcategory: "NPC Copy/Paste",
+	})
+	npcDeleteOldActions = true;
+
+	@SwitchProperty({
+		name: "Rename NPC on Paste",
+		description: 'Apply the copied name to the target NPC when pasting. Turn off to keep the target NPC\'s own name',
+		category: "General",
+		subcategory: "NPC Copy/Paste",
+	})
+	npcRenameOnPaste = true;
+
+	// Importing/Exporting
 
 	@TextProperty({
 		name: "Item Path Prefix",

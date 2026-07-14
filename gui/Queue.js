@@ -60,6 +60,19 @@ register("tick", () => {
     switch (operation.type) {
         case "click":
             return Navigator.click(operation.slot, operation.button);
+        case "clickByName": {
+            // some GUIs (e.g. NPC actions) place buttons on other slots, so find them by name
+            const container = Player.getContainer();
+            const items = container.getItems();
+            let slot = operation.fallbackSlot;
+            for (let i = 0; i < container.getSize() - 36; i++) {
+                if (items[i] && ChatLib.removeFormatting(items[i].getName()) === operation.name) {
+                    slot = i;
+                    break;
+                }
+            }
+            return Navigator.click(slot, operation.button);
+        }
         case "input":
             return Navigator.input(operation.text);
         case "returnToEditActions":
