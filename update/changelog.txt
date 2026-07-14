@@ -1,9 +1,4 @@
-Patch v2.0.8:
+Patch v2.0.9:
 
-- Added /bhtsl exportall command, supporting events, regions, commands, and functions
-- Added all option to /bhtsl exportall
-- Fixed issue with certain nbt when exporting items
-- Fixed variable name length check
-- Fixed items being left in the inventory during export
-- Removed /bhtsl exportallfunction and /bhtsl exportallcommands
-- Removed option to append a goto header to exportall files (now always enabled)
+- Fixed items not being deleted while exporting
+- Fixed creation of duplicate item files
